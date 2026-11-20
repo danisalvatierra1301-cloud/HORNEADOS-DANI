@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HORNEADOS DANI | Empanadas Artesanales en Santa Cruz</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Fraunces -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js para métricas administrativas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Fraunces"', 'serif'],
+          },
+          colors: {
+            brand: {
+              cream: '#FDF8F2',
+              creamDark: '#F5EBDD',
+              orange: '#D95D1E',
+              orangeHover: '#B84912',
+              gold: '#F2A922',
+              goldLight: '#FDE8BE',
+              brown: '#3D2314',
+              brownLight: '#6B442E',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-brand-cream text-brand-brown font-sans antialiased selection:bg-brand-orange selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- NOTIFICACIONES TOAST (Reemplazo seguro de alert() / confirm())        -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO -->
+  <div id="confirm-modal" class="fixed inset-0 z-[95] hidden items-center justify-center bg-brand-brown/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-brand-creamDark">
+      <div class="flex items-center gap-3 text-brand-orange mb-3">
+        <div class="p-3 bg-brand-orange/10 rounded-2xl">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+        <h3 id="confirm-title" class="text-lg font-bold text-brand-brown">Confirmar acción</h3>
+      </div>
+      <p id="confirm-message" class="text-sm text-brand-brownLight mb-6 leading-relaxed"></p>
+      <div class="flex justify-end gap-3">
+        <button id="confirm-cancel-btn" class="px-5 py-2.5 rounded-xl font-semibold text-brand-brown bg-brand-creamDark hover:bg-brand-creamDark/80 transition">
+          Cancelar
+        </button>
+        <button id="confirm-ok-btn" class="px-5 py-2.5 rounded-xl font-semibold text-white bg-brand-orange hover:bg-brand-orangeHover transition shadow-md">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BARRA DE ESTADO DE CONEXIÓN / CONFIGURACIÓN SUPABASE                  -->
+  <!-- ===================================================================== -->
+  <div id="db-status-bar" class="bg-brand-brown text-brand-cream text-xs py-2 px-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span id="db-indicator" class="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse"></span>
+        <span id="db-status-text">Modo Local / Demo activo (Conecta tu proyecto Supabase para persistencia en la nube)</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="openSupabaseConfigModal()" class="underline hover:text-brand-gold transition font-medium flex items-center gap-1">
+          <i data-lucide="database" class="w-3.5 h-3.5"></i> Configurar Supabase
+        </button>
+        <span class="text-brand-cream/40">|</span>
+        <button id="nav-switch-btn" onclick="toggleAppModule()" class="bg-brand-orange hover:bg-brand-orangeHover text-white px-3 py-1 rounded-lg font-semibold transition flex items-center gap-1.5">
+          <i data-lucide="lock" class="w-3.5 h-3.5"></i> <span id="nav-switch-label">Panel Admin (/admin)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURACIÓN DE CREDENCIALES SUPABASE (Anon Key pública) -->
+  <div id="supabase-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-brand-brown/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-brand-creamDark">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2.5 bg-brand-orange/10 text-brand-orange rounded-2xl">
+            <i data-lucide="server" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-brand-brown">Conexión a Supabase</h3>
+            <p class="text-xs text-brand-brownLight">Usa únicamente tu URL del proyecto y clave pública (anon key)</p>
+          </div>
+        </div>
+        <button onclick="closeSupabaseConfigModal()" class="p-2 rounded-xl hover:bg-brand-cream text-brand-brownLight">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="supabase-config-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-brand-brownLight mb-1">Supabase Project URL</label>
+          <input type="url" id="sb-url-input" placeholder="https://tu-proyecto.supabase.co" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-brand-brownLight mb-1">Supabase Anon Public Key</label>
+          <input type="text" id="sb-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+        <div class="bg-brand-goldLight/50 p-3.5 rounded-2xl text-xs text-brand-brown leading-relaxed">
+          <strong>Nota de seguridad:</strong> Nunca ingreses la clave <code>service_role</code> en el navegador. Las operaciones de escritura están protegidas por políticas Row Level Security (RLS) en PostgreSQL.
+        </div>
+        <div class="flex flex-wrap justify-between gap-2 pt-2">
+          <button type="button" onclick="resetSupabaseConfig()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 transition">
+            Usar Modo Local
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeSupabaseConfigModal()" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-creamDark text-brand-brown">
+              Cancelar
+            </button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-brand-orange hover:bg-brand-orangeHover text-white shadow-md transition">
+              Conectar y Sincronizar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MÓDULO 1: TIENDA VIRTUAL PARA CLIENTES                                -->
+  <!-- ===================================================================== -->
+  <div id="storefront-module" class="min-h-screen flex flex-col">
+    <!-- HEADER / NAVBAR -->
+    <header class="sticky top-0 z-40 bg-brand-cream/95 backdrop-blur-md border-b border-brand-creamDark">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <!-- Logotipo y Nombre -->
+        <a href="#inicio" class="flex items-center gap-3 group">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-orange to-brand-gold flex items-center justify-center text-white shadow-lg shadow-brand-orange/25 group-hover:scale-105 transition">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 15c0-5.5 4.5-9 10-9 3.5 0 6 2 6 5.5 0 4.5-4.5 7.5-10 7.5-3.5 0-6-1.5-6-4Z"/>
+              <path d="M7 10c1.5 1.5 3.5 2 6 1.5"/>
+              <path d="M9 7.5c1.5 1 3 1.2 4.5.8"/>
+            </svg>
+          </div>
+          <div>
+            <span id="header-business-name" class="font-display text-xl sm:text-2xl font-extrabold tracking-tight text-brand-brown block leading-none">
+              HORNEADOS DANI
+            </span>
+            <span class="text-xs font-semibold text-brand-orange tracking-wide">
+              Santa Cruz de la Sierra • Bolivia
+            </span>
+          </div>
+        </a>
+
+        <!-- Navegación Desktop -->
+        <nav class="hidden md:flex items-center gap-8 font-semibold text-sm text-brand-brownLight">
+          <a href="#inicio" class="hover:text-brand-orange transition">Inicio</a>
+          <a href="#menu" class="hover:text-brand-orange transition">Menú de Empanadas</a>
+          <a href="#ubicacion" class="hover:text-brand-orange transition">Ubicación y Horarios</a>
+        </nav>
+
+        <!-- Botón Carrito -->
+        <div class="flex items-center gap-3">
+          <button onclick="openCartDrawer()" class="relative flex items-center gap-2.5 bg-brand-brown hover:bg-brand-orange text-white px-4 sm:px-5 py-3 rounded-2xl font-bold text-sm transition shadow-lg shadow-brand-brown/15">
+            <i data-lucide="shopping-bag" class="w-5 h-5 text-brand-gold"></i>
+            <span class="hidden sm:inline">Mi Pedido</span>
+            <span id="cart-badge-count" class="bg-brand-gold text-brand-brown text-xs font-extrabold px-2 py-0.5 rounded-full">0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO SECTION / PÁGINA DE INICIO -->
+    <section id="inicio" class="relative overflow-hidden py-10 sm:py-16 lg:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          <!-- Texto comercial -->
+          <div class="lg:col-span-6 space-y-6 text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-goldLight text-brand-brown font-bold text-xs sm:text-sm shadow-sm">
+              <i data-lucide="flame" class="w-4 h-4 text-brand-orange"></i>
+              <span>Recién salidas del horno en Barrio Amboró</span>
+            </div>
+
+            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-brand-brown leading-[1.1]">
+              El sabor artesanal que <span class="text-brand-orange">conquista</span> cada bocado.
+            </h1>
+
+            <p id="hero-description" class="text-base sm:text-lg text-brand-brownLight leading-relaxed max-w-xl mx-auto lg:mx-0">
+              En <strong>HORNEADOS DANI</strong> elaboramos empanadas horneadas con masa dorada, crujiente y rellenos generosos preparados cada día con ingredientes frescos en Santa Cruz de la Sierra.
+            </p>
+
+            <!-- Botones principales -->
+            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+              <a href="#menu" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-orange hover:bg-brand-orangeHover text-white font-extrabold text-base shadow-xl shadow-brand-orange/30 transition flex items-center justify-center gap-2">
+                <i data-lucide="utensils" class="w-5 h-5"></i>
+                VER MENÚ
+              </a>
+              <button onclick="openCartDrawer()" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-brand-goldLight/60 text-brand-brown border-2 border-brand-brown/15 font-extrabold text-base transition flex items-center justify-center gap-2">
+                <i data-lucide="message-circle" class="w-5 h-5 text-green-600"></i>
+                REALIZAR PEDIDO
+              </button>
+            </div>
+
+            <!-- Datos rápidos del local -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-brand-creamDark text-left">
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="map-pin" class="w-5 h-5 text-brand-orange shrink-0 mt-0.5"></i>
+                <div>
+                  <p class="text-xs font-bold uppercase text-brand-brownLight">Dirección</p>
+                  <p id="hero-address" class="text-sm font-bold text-brand-brown">Barrio Amboró, calle Beni</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="phone" class="w-5 h-5 text-brand-orange shrink-0 mt-0.5"></i>
+                <div>
+                  <p class="text-xs font-bold uppercase text-brand-brownLight">WhatsApp Directo</p>
+                  <p id="hero-whatsapp" class="text-sm font-bold text-brand-brown">78142994</p>
+                </div>
+              </div>
+              <div class="col-span-2 sm:col-span-1 flex items-start gap-2.5">
+                <i data-lucide="clock" class="w-5 h-5 text-brand-orange shrink-0 mt-0.5"></i>
+                <div>
+                  <p class="text-xs font-bold uppercase text-brand-brownLight">Atención</p>
+                  <p id="hero-hours" class="text-sm font-bold text-brand-brown">Consultar disponibilidad</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Imagen Principal Realista -->
+          <div class="lg:col-span-6">
+            <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white aspect-[4/3] bg-brand-creamDark">
+              <img
+                src="https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=1200&q=85"
+                onerror="this.src='https://placehold.co/800x600/D95D1E/FDF8F2?text=HORNEADOS+DANI+Empanadas'"
+                alt="Empanadas doradas recién horneadas de HORNEADOS DANI"
+                class="w-full h-full object-cover"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-brand-brown/70 via-transparent to-transparent"></div>
+              <div class="absolute bottom-5 left-5 right-5 sm:bottom-7 sm:left-7 sm:right-7 flex items-center justify-between bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-lg">
+                <div>
+                  <p class="text-xs font-extrabold uppercase tracking-wider text-brand-orange">Calidad Artesanal</p>
+                  <p class="font-display font-bold text-brand-brown text-base sm:text-lg">Carne • Pollo • Queso</p>
+                </div>
+                <span class="px-3.5 py-1.5 rounded-xl bg-brand-gold text-brand-brown font-extrabold text-xs sm:text-sm">
+                  Hechas hoy
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATÁLOGO DE PRODUCTOS DINÁMICO -->
+    <section id="menu" class="py-14 sm:py-20 bg-white rounded-t-[3rem] shadow-inner">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-widest text-brand-orange">Nuestro Menú</span>
+            <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-brand-brown mt-1">
+              Empanadas Horneadas del Día
+            </h2>
+            <p class="text-brand-brownLight mt-2 max-w-2xl text-sm sm:text-base">
+              Selecciona tus variedades favoritas y agrégalas a tu pedido. Los precios se actualizan en tiempo real desde nuestra administración.
+            </p>
+          </div>
+          <button onclick="loadStorefrontData()" class="self-start md:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-cream hover:bg-brand-creamDark text-brand-brown font-bold text-xs transition">
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-orange"></i> Actualizar precios y stock
+          </button>
+        </div>
+
+        <!-- Grid de Productos -->
+        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Renderizado dinámico por JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN UBICACIÓN Y CONTACTO -->
+    <section id="ubicacion" class="py-14 bg-brand-creamDark/60 border-t border-brand-creamDark">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-brand-brown text-brand-cream rounded-[2.5rem] p-8 sm:p-12 shadow-xl grid md:grid-cols-2 gap-8 items-center">
+          <div class="space-y-4">
+            <span class="px-3 py-1 rounded-full bg-brand-orange text-white text-xs font-bold uppercase tracking-wider">
+              Visítanos o pide por Delivery
+            </span>
+            <h3 class="font-display text-2xl sm:text-3xl font-extrabold">
+              Estamos en Santa Cruz de la Sierra
+            </h3>
+            <p class="text-brand-cream/80 text-sm sm:text-base leading-relaxed">
+              Puedes recoger tu pedido directamente en nuestro punto de elaboración o solicitar envío a domicilio indicando tu dirección y referencias.
+            </p>
+            <div class="space-y-3 pt-2 text-sm">
+              <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-xl bg-white/10 text-brand-gold">
+                  <i data-lucide="map-pin" class="w-5 h-5"></i>
+                </div>
+                <span id="footer-address" class="font-semibold">Barrio Amboró, calle Beni — Santa Cruz de la Sierra, Bolivia</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-xl bg-white/10 text-brand-gold">
+                  <i data-lucide="phone-call" class="w-5 h-5"></i>
+                </div>
+                <span id="footer-whatsapp" class="font-semibold">WhatsApp: +591 78142994</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-xl bg-white/10 text-brand-gold">
+                  <i data-lucide="clock" class="w-5 h-5"></i>
+                </div>
+                <span id="footer-hours" class="font-semibold">Horario: Según disponibilidad configurada</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-white/10 space-y-4">
+            <h4 class="font-display text-xl font-bold text-brand-gold">¿Listo para ordenar?</h4>
+            <p class="text-sm text-brand-cream/85">
+              Arma tu carrito en segundos. Al confirmar tu pedido, se registrará automáticamente en nuestro sistema y se abrirá WhatsApp con el detalle listo para enviar.
+            </p>
+            <button onclick="openCartDrawer()" class="w-full py-4 rounded-2xl bg-brand-gold hover:bg-brand-gold/90 text-brand-brown font-extrabold text-base transition shadow-lg flex items-center justify-center gap-2">
+              <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+              Abrir Carrito y Confirmar Pedido
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-brown text-brand-cream/70 py-8 border-t border-white/10 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <p>© <span id="current-year"></span> <strong class="text-white">HORNEADOS DANI</strong>. Todos los derechos reservados.</p>
+        <p>Santa Cruz de la Sierra, Bolivia • Moneda: Bolivianos (Bs)</p>
+      </div>
+    </footer>
+
+    <!-- BARRA FLOTANTE INFERIOR EN MÓVIL CUANDO HAY PRODUCTOS EN EL CARRITO -->
+    <div id="mobile-floating-cart" class="fixed bottom-4 left-4 right-4 z-30 md:hidden hidden">
+      <button onclick="openCartDrawer()" class="w-full bg-brand-orange text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between font-extrabold">
+        <div class="flex items-center gap-3">
+          <span id="mobile-cart-count" class="bg-white text-brand-orange w-7 h-7 rounded-xl flex items-center justify-center text-sm font-black">0</span>
+          <span>Ver mi pedido</span>
+        </div>
+        <span id="mobile-cart-total" class="text-lg">Bs 0.00</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- DRAWER LATERAL DEL CARRITO Y FORMULARIO DE PEDIDO                     -->
+  <!-- ===================================================================== -->
+  <div id="cart-drawer-overlay" class="fixed inset-0 z-50 hidden bg-brand-brown/60 backdrop-blur-sm transition-opacity" onclick="closeCartDrawer()"></div>
+  <aside id="cart-drawer" class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-brand-cream shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Header Drawer -->
+    <div class="p-5 sm:p-6 bg-white border-b border-brand-creamDark flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 rounded-2xl bg-brand-orange/10 text-brand-orange">
+          <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="font-display text-xl font-extrabold text-brand-brown">Tu Pedido</h3>
+          <p class="text-xs text-brand-brownLight">Revisa tus empanadas y completa tus datos</p>
+        </div>
+      </div>
+      <button onclick="closeCartDrawer()" class="p-2.5 rounded-xl bg-brand-cream hover:bg-brand-creamDark text-brand-brown transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Contenido Scrollable -->
+    <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+      <!-- Lista de items en carrito -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-brand-brownLight">Productos seleccionados</h4>
+          <button onclick="clearCart()" id="clear-cart-btn" class="text-xs font-bold text-red-600 hover:underline hidden">Vaciar carrito</button>
+        </div>
+        <div id="cart-items-list" class="space-y-3">
+          <!-- Items renderizados por JS -->
+        </div>
+      </div>
+
+      <!-- Formulario de Checkout -->
+      <form id="checkout-form" class="space-y-4 bg-white p-5 rounded-3xl border border-brand-creamDark shadow-sm">
+        <h4 class="font-display text-lg font-bold text-brand-brown border-b border-brand-creamDark pb-2.5">
+          Datos para el Pedido
+        </h4>
+
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-1">Nombre completo del cliente *</label>
+          <input type="text" id="cust-name" required placeholder="Ej. María Fernanda López" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-1">Número de teléfono / WhatsApp *</label>
+          <input type="tel" id="cust-phone" required placeholder="Ej. 78142994" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+
+        <!-- Modalidad de entrega -->
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-2">Modalidad del pedido *</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="order_type" value="Recoger en el negocio" checked onchange="handleOrderTypeChange()" class="peer sr-only" />
+              <div class="p-3.5 rounded-2xl border-2 border-brand-creamDark peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition text-center">
+                <i data-lucide="store" class="w-5 h-5 mx-auto mb-1 text-brand-orange"></i>
+                <span class="block text-xs font-extrabold text-brand-brown">Recoger en el negocio</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="order_type" value="Delivery" onchange="handleOrderTypeChange()" class="peer sr-only" />
+              <div class="p-3.5 rounded-2xl border-2 border-brand-creamDark peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition text-center">
+                <i data-lucide="bike" class="w-5 h-5 mx-auto mb-1 text-brand-orange"></i>
+                <span class="block text-xs font-extrabold text-brand-brown">Delivery</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Info Recoger en el negocio -->
+        <div id="pickup-info-box" class="p-3.5 rounded-2xl bg-brand-goldLight/50 border border-brand-gold/40 text-xs text-brand-brown flex items-start gap-2.5">
+          <i data-lucide="map-pin" class="w-4 h-4 text-brand-orange shrink-0 mt-0.5"></i>
+          <div>
+            <p class="font-bold">Punto de recojo:</p>
+            <p id="checkout-pickup-address">Barrio Amboró, calle Beni (Santa Cruz de la Sierra).</p>
+          </div>
+        </div>
+
+        <!-- Campos Delivery (Condicionales) -->
+        <div id="delivery-fields-box" class="hidden space-y-3 p-4 rounded-2xl bg-brand-cream/70 border border-brand-creamDark">
+          <div>
+            <label class="block text-xs font-bold text-brand-brown mb-1">Dirección de entrega *</label>
+            <input type="text" id="cust-address" placeholder="Ej. Av. Santos Dumont, 3er anillo, Calle 4 #120" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-brand-brown mb-1">Referencias de ubicación (opcional)</label>
+            <input type="text" id="cust-reference" placeholder="Ej. Portón café, frente a la plaza" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+          <div id="delivery-fee-notice" class="text-xs font-semibold text-brand-brownLight">
+            <!-- Se muestra únicamente si el administrador configuró tarifa > 0 -->
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-1">Observaciones adicionales (opcional)</label>
+          <textarea id="cust-observations" rows="2" placeholder="Ej. Bien doraditas, incluir servilletas, etc." class="w-full px-4 py-2.5 rounded-xl border border-brand-creamDark bg-brand-cream/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm"></textarea>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer Resumen y Botón WhatsApp -->
+    <div class="p-5 sm:p-6 bg-white border-t border-brand-creamDark space-y-4">
+      <div class="space-y-1.5 text-sm">
+        <div class="flex justify-between text-brand-brownLight">
+          <span>Subtotal productos:</span>
+          <span id="summary-subtotal" class="font-bold text-brand-brown">Bs 0.00</span>
+        </div>
+        <div id="summary-delivery-row" class="hidden justify-between text-brand-brownLight">
+          <span>Costo de Delivery:</span>
+          <span id="summary-delivery" class="font-bold text-brand-brown">Bs 0.00</span>
+        </div>
+        <div class="flex justify-between text-lg font-extrabold text-brand-brown pt-2 border-t border-brand-creamDark">
+          <span>TOTAL A PAGAR:</span>
+          <span id="summary-total" class="text-brand-orange">Bs 0.00</span>
+        </div>
+      </div>
+
+      <button type="button" onclick="submitOrderToWhatsApp()" id="confirm-whatsapp-btn" class="w-full py-4 px-6 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-extrabold text-base shadow-xl shadow-green-600/25 transition flex items-center justify-center gap-2.5">
+        <i data-lucide="send" class="w-5 h-5"></i>
+        CONFIRMAR Y ENVIAR POR WHATSAPP
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===================================================================== -->
+  <!-- MÓDULO 2: PANEL PRIVADO DE ADMINISTRACIÓN (/admin)                    -->
+  <!-- ===================================================================== -->
+  <div id="admin-module" class="hidden min-h-screen bg-stone-100 text-stone-900">
+
+    <!-- PANTALLA DE INICIO DE SESIÓN ADMINISTRATIVA -->
+    <div id="admin-login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-brand-brown via-brand-brown to-stone-900">
+      <div class="bg-white rounded-[2rem] max-w-md w-full p-8 shadow-2xl">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 rounded-2xl bg-brand-orange text-white flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <i data-lucide="shield-check" class="w-8 h-8"></i>
+          </div>
+          <h1 class="font-display text-2xl font-extrabold text-brand-brown">HORNEADOS DANI</h1>
+          <p class="text-sm text-brand-brownLight mt-1">Acceso Privado de Administración</p>
+        </div>
+
+        <form id="admin-login-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Correo electrónico del administrador</label>
+            <input type="email" id="admin-email" required placeholder="admin@horneadosdani.com" class="w-full px-4 py-3.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Contraseña</label>
+            <input type="password" id="admin-password" required placeholder="••••••••" class="w-full px-4 py-3.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-1">
+            <button type="button" onclick="handlePasswordRecovery()" class="text-brand-orange font-bold hover:underline">
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
+          <button type="submit" id="admin-login-submit" class="w-full py-3.5 rounded-xl bg-brand-orange hover:bg-brand-orangeHover text-white font-extrabold text-sm shadow-lg transition flex items-center justify-center gap-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i> Iniciar Sesión
+          </button>
+        </form>
+
+        <!-- Acceso de prueba si Supabase aún no está conectado -->
+        <div id="demo-login-helper" class="mt-6 pt-5 border-t border-stone-200 text-center">
+          <p class="text-xs text-stone-500 mb-2">¿Aún no conectaste tu proyecto de Supabase?</p>
+          <button type="button" onclick="loginDemoMode()" class="w-full py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition">
+            Entrar en Modo Demostración Local
+          </button>
+        </div>
+
+        <div class="mt-6 text-center">
+          <button onclick="switchToStorefront()" class="text-xs font-bold text-stone-500 hover:text-brand-brown inline-flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Volver a la Tienda Virtual
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERFAZ DEL DASHBOARD ADMINISTRATIVO (PROTEGIDA POR SESIÓN) -->
+    <div id="admin-dashboard-shell" class="hidden min-h-screen flex flex-col lg:flex-row">
+      <!-- Sidebar Admin -->
+      <aside class="w-full lg:w-64 bg-brand-brown text-brand-cream flex flex-col shrink-0">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between lg:block">
+          <div>
+            <span class="font-display text-xl font-extrabold text-white block">HORNEADOS DANI</span>
+            <span class="text-xs text-brand-gold font-semibold">Panel de Control</span>
+          </div>
+          <button onclick="handleAdminLogout()" class="lg:hidden p-2 rounded-xl bg-white/10 text-white" title="Cerrar sesión">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <nav class="flex lg:flex-col overflow-x-auto p-3 lg:p-4 gap-1.5">
+          <button onclick="switchAdminTab('dashboard')" data-tab="dashboard" class="admin-tab-btn active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition bg-brand-orange text-white">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+          </button>
+          <button onclick="switchAdminTab('orders')" data-tab="orders" class="admin-tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition text-brand-cream/80 hover:bg-white/10">
+            <i data-lucide="clipboard-list" class="w-4 h-4"></i> Pedidos
+            <span id="sidebar-pending-badge" class="ml-auto bg-brand-gold text-brand-brown text-xs font-black px-2 py-0.5 rounded-full">0</span>
+          </button>
+          <button onclick="switchAdminTab('products')" data-tab="products" class="admin-tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition text-brand-cream/80 hover:bg-white/10">
+            <i data-lucide="package" class="w-4 h-4"></i> Productos y Precios
+          </button>
+          <button onclick="switchAdminTab('settings')" data-tab="settings" class="admin-tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition text-brand-cream/80 hover:bg-white/10">
+            <i data-lucide="settings" class="w-4 h-4"></i> Configuración
+          </button>
+        </nav>
+
+        <div class="hidden lg:block mt-auto p-4 border-t border-white/10 space-y-3">
+          <div class="px-3 py-2 rounded-xl bg-white/5 text-xs">
+            <p class="text-brand-cream/60">Sesión activa:</p>
+            <p id="admin-user-email" class="font-bold text-white truncate">admin@horneadosdani.com</p>
+          </div>
+          <button onclick="switchToStorefront()" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Ver Tienda Pública
+          </button>
+          <button onclick="handleAdminLogout()" class="w-full py-2.5 px-4 rounded-xl bg-red-600/80 hover:bg-red-600 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
+          </button>
+        </div>
+      </aside>
+
+      <!-- Área Principal Admin -->
+      <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
+        <!-- TAB 1: DASHBOARD -->
+        <section id="admin-tab-dashboard" class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Resumen General</h2>
+              <p class="text-sm text-stone-500">Indicadores operativos y financieros de HORNEADOS DANI</p>
+            </div>
+            <button onclick="refreshAdminData()" class="px-4 py-2.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-xs font-bold text-stone-700 flex items-center gap-2 shadow-sm">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-orange"></i> Actualizar Datos
+            </button>
+          </div>
+
+          <!-- Tarjetas KPI -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-stone-400">Total Pedidos</p>
+              <p id="kpi-total-orders" class="text-3xl font-extrabold text-brand-brown mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-amber-600">Pendientes</p>
+              <p id="kpi-pending-orders" class="text-3xl font-extrabold text-amber-600 mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-blue-600">Confirmados</p>
+              <p id="kpi-confirmed-orders" class="text-3xl font-extrabold text-blue-600 mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-green-600">Entregados</p>
+              <p id="kpi-delivered-orders" class="text-3xl font-extrabold text-green-600 mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-stone-400">Ventas del Día</p>
+              <p id="kpi-today-sales" class="text-2xl sm:text-3xl font-extrabold text-brand-orange mt-1">Bs 0.00</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-stone-400">Ventas del Mes</p>
+              <p id="kpi-month-sales" class="text-2xl sm:text-3xl font-extrabold text-brand-brown mt-1">Bs 0.00</p>
+            </div>
+            <div class="col-span-2 bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-bold uppercase text-stone-400">Productos Disponibles en Menú</p>
+                <p id="kpi-available-products" class="text-3xl font-extrabold text-brand-brown mt-1">0 / 0</p>
+              </div>
+              <button onclick="switchAdminTab('products')" class="px-4 py-2.5 rounded-xl bg-brand-cream text-brand-orange font-bold text-xs hover:bg-brand-creamDark transition">
+                Gestionar Precios →
+              </button>
+            </div>
+          </div>
+
+          <!-- Gráfico de Ventas -->
+          <div class="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-sm">
+            <h3 class="font-display text-lg font-bold text-brand-brown mb-4">Evolución de Ventas (Últimos 7 días)</h3>
+            <div id="sales-chart-wrapper" class="h-64 relative">
+              <canvas id="salesChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: ADMINISTRACIÓN DE PEDIDOS -->
+        <section id="admin-tab-orders" class="hidden space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Gestión de Pedidos</h2>
+              <p class="text-sm text-stone-500">Consulta detalles y actualiza el estado de preparación y entrega</p>
+            </div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="bg-white p-4 rounded-3xl border border-stone-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-stone-500 mb-1">Filtrar por Fecha</label>
+              <input type="date" id="filter-order-date" onchange="renderAdminOrders()" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-500 mb-1">Filtrar por Estado</label>
+              <select id="filter-order-status" onchange="renderAdminOrders()" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">1. Pendiente</option>
+                <option value="Confirmado">2. Confirmado</option>
+                <option value="En preparación">3. En preparación</option>
+                <option value="Listo para recoger">4. Listo para recoger</option>
+                <option value="En camino">5. En camino</option>
+                <option value="Entregado">6. Entregado</option>
+                <option value="Cancelado">7. Cancelado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-500 mb-1">Modalidad de Entrega</label>
+              <select id="filter-order-type" onchange="renderAdminOrders()" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm">
+                <option value="">Todas las modalidades</option>
+                <option value="Recoger en el negocio">Recoger en el negocio</option>
+                <option value="Delivery">Delivery</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Listado de Pedidos -->
+          <div id="admin-orders-list" class="space-y-4">
+            <!-- Renderizado dinámico -->
+          </div>
+        </section>
+
+        <!-- TAB 3: ADMINISTRACIÓN DE PRODUCTOS Y PRECIOS -->
+        <section id="admin-tab-products" class="hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Productos y Control de Precios</h2>
+              <p class="text-sm text-stone-500">Define los precios reales en Bolivianos (Bs) y disponibilidad. Los pedidos anteriores conservan su precio histórico.</p>
+            </div>
+            <button onclick="openProductModal()" class="px-5 py-3 rounded-2xl bg-brand-orange hover:bg-brand-orangeHover text-white font-extrabold text-sm shadow-lg flex items-center gap-2 transition">
+              <i data-lucide="plus" class="w-5 h-5"></i> Nuevo Producto
+            </button>
+          </div>
+
+          <div id="admin-products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Tarjetas de edición rápida -->
+          </div>
+        </section>
+
+        <!-- TAB 4: CONFIGURACIÓN DEL NEGOCIO -->
+        <section id="admin-tab-settings" class="hidden space-y-6 max-w-3xl">
+          <div>
+            <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Configuración del Negocio</h2>
+            <p class="text-sm text-stone-500">Personaliza los datos operativos de HORNEADOS DANI</p>
+          </div>
+
+          <form id="business-settings-form" class="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Nombre Comercial</label>
+                <input type="text" id="set-business-name" required class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Número de WhatsApp (con código país)</label>
+                <input type="text" id="set-whatsapp" required placeholder="59178142994" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Dirección del Local</label>
+              <input type="text" id="set-address" required class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm" />
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Costo de Delivery (Bs)</label>
+                <input type="number" step="0.50" min="0" id="set-delivery-fee" placeholder="0.00" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-bold" />
+                <p class="text-[11px] text-stone-500 mt-1">Si es 0 o vacío, no se mostrará tarifa fija de delivery al cliente.</p>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Horarios de Atención</label>
+                <input type="text" id="set-hours" placeholder="Ej. Lunes a Sábado 15:00 - 21:00" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm" />
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button type="submit" class="px-6 py-3.5 rounded-2xl bg-brand-brown hover:bg-brand-orange text-white font-extrabold text-sm shadow-md transition flex items-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar Configuración
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL CREAR / EDITAR PRODUCTO -->
+  <div id="product-modal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-brand-brown/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="product-modal-title" class="font-display text-xl font-extrabold text-brand-brown">Editar Producto</h3>
+        <button onclick="closeProductModal()" class="p-2 rounded-xl hover:bg-stone-100 text-stone-500">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="product-form" class="space-y-4">
+        <input type="hidden" id="prod-id" />
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Nombre del Producto *</label>
+          <input type="text" id="prod-name" required placeholder="Ej. Empanada de carne" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Descripción *</label>
+          <textarea id="prod-desc" rows="3" required placeholder="Ingredientes y preparación..." class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Precio en Bs *</label>
+            <input type="number" step="0.50" min="0" id="prod-price" required placeholder="0.00" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-extrabold text-brand-orange" />
+            <p class="text-[11px] text-stone-500 mt-1">Usa 0 si aún no defines el precio.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Estado / Stock</label>
+            <select id="prod-available" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold">
+              <option value="true">Disponible en tienda</option>
+              <option value="false">Agotado / No disponible</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Subir Fotografía (Supabase Storage)</label>
+          <input type="file" id="prod-image-file" accept="image/*" class="w-full text-xs text-stone-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-cream file:text-brand-orange hover:file:bg-brand-creamDark" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">O URL de Fotografía</label>
+          <input type="url" id="prod-image-url" placeholder="https://..." class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-xs" />
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-stone-200">
+          <button type="button" onclick="closeProductModal()" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-stone-100 text-stone-700">
+            Cancelar
+          </button>
+          <button type="submit" id="save-product-btn" class="px-6 py-2.5 rounded-xl font-extrabold text-sm bg-brand-orange hover:bg-brand-orangeHover text-white shadow-md">
+            Guardar Producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- LÓGICA DE APLICACIÓN, SUPABASE Y PERSISTENCIA                         -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * ESTADO GLOBAL DE LA APLICACIÓN HORNEADOS DANI
+     * Nota: Los precios iniciales están en 0 (sin precios inventados) hasta que el
+     * administrador los configure desde el panel privado o desde Supabase.
+     */
+    const STORAGE_KEYS = {
+      CART: 'horneados_dani_cart_v1',
+      SB_URL: 'horneados_dani_sb_url',
+      SB_KEY: 'horneados_dani_sb_key',
+      LOCAL_PRODUCTS: 'horneados_dani_local_products',
+      LOCAL_ORDERS: 'horneados_dani_local_orders',
+      LOCAL_SETTINGS: 'horneados_dani_local_settings',
+      DEMO_AUTH: 'horneados_dani_demo_auth'
+    };
+
+    const DEFAULT_PRODUCTS = [
+      {
+        id: '11111111-1111-1111-1111-111111111101',
+        name: 'Empanada de carne',
+        description: 'Masa artesanal horneada, rellena con carne molida sazonada al estilo tradicional, papa, huevo y especias seleccionadas.',
+        price: 0,
+        image_url: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80',
+        available: true
+      },
+      {
+        id: '11111111-1111-1111-1111-111111111102',
+        name: 'Empanada de pollo',
+        description: 'Pechuga de pollo desmenuzada y jugosa cocida a fuego lento con sofrito criollo en masa dorada al horno.',
+        price: 0,
+        image_url: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80',
+        available: true
+      },
+      {
+        id: '11111111-1111-1111-1111-111111111103',
+        name: 'Empanada de queso',
+        description: 'Abundante queso criollo fundido dentro de nuestra masa suave y crocante recién salida del horno.',
+        price: 0,
+        image_url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80',
+        available: true
+      }
+    ];
+
+    const DEFAULT_SETTINGS = {
+      id: 1,
+      business_name: 'HORNEADOS DANI',
+      whatsapp_number: '59178142994',
+      address: 'Barrio Amboró, calle Beni',
+      delivery_fee: 0,
+      business_hours: ''
+    };
+
+    let supabaseClient = null;
+    let isSupabaseConnected = false;
+    let currentAdminUser = null;
+    let productsState = [];
+    let ordersState = [];
+    let settingsState = { ...DEFAULT_SETTINGS };
+    let cartState = [];
+    let salesChartInstance = null;
+
+    // =====================================================================
+    // INICIALIZACIÓN
+    // =====================================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('current-year').textContent = new Date().getFullYear();
+      lucide.createIcons();
+
+      // Cargar carrito desde localStorage
+      loadCartFromStorage();
+
+      // Inicializar Supabase si hay credenciales guardadas
+      initSupabaseFromStorage();
+
+      // Cargar datos iniciales
+      await loadStorefrontData();
+
+      // Verificar si la URL contiene /admin o hash #admin
+      if (window.location.pathname.endsWith('/admin') || window.location.hash === '#admin') {
+        switchToAdmin();
+      }
+
+      // Listeners de formularios
+      document.getElementById('supabase-config-form').addEventListener('submit', handleSaveSupabaseConfig);
+      document.getElementById('admin-login-form').addEventListener('submit', handleAdminLogin);
+      document.getElementById('product-form').addEventListener('submit', handleSaveProduct);
+      document.getElementById('business-settings-form').addEventListener('submit', handleSaveBusinessSettings);
+    });
+
+    // =====================================================================
+    // UTILIDADES UI (TOASTS Y CONFIRMACIÓN)
+    // =====================================================================
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const colors = {
+        success: 'bg-green-700 text-white',
+        error: 'bg-red-700 text-white',
+        warning: 'bg-amber-600 text-white',
+        info: 'bg-brand-brown text-white'
+      };
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-4 py-3.5 rounded-2xl shadow-xl text-sm font-semibold flex items-center justify-between gap-3 transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3800);
+    }
+
+    function showConfirm(title, message) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const cleanup = (result) => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          resolve(result);
+        };
+
+        document.getElementById('confirm-ok-btn').onclick = () => cleanup(true);
+        document.getElementById('confirm-cancel-btn').onclick = () => cleanup(false);
+      });
+    }
+
+    function formatBs(amount) {
+      const num = parseFloat(amount) || 0;
+      return `Bs ${num.toFixed(2)}`;
+    }
+
+    // =====================================================================
+    // GESTIÓN DE CONEXIÓN SUPABASE
+    // =====================================================================
+    function initSupabaseFromStorage() {
+      const url = localStorage.getItem(STORAGE_KEYS.SB_URL);
+      const key = localStorage.getItem(STORAGE_KEYS.SB_KEY);
+      if (url && key && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+          isSupabaseConnected = true;
+          updateDbStatusUI(true);
+        } catch (err) {
+          console.error('Error inicializando Supabase:', err);
+          isSupabaseConnected = false;
+          updateDbStatusUI(false);
+        }
+      } else {
+        isSupabaseConnected = false;
+        updateDbStatusUI(false);
+      }
+    }
+
+    function updateDbStatusUI(connected) {
+      const indicator = document.getElementById('db-indicator');
+      const text = document.getElementById('db-status-text');
+      const demoHelper = document.getElementById('demo-login-helper');
+
+      if (connected) {
+        indicator.className = 'w-2.5 h-2.5 rounded-full bg-green-400';
+        text.textContent = 'Conectado a Supabase PostgreSQL & Auth en tiempo real';
+        if (demoHelper) demoHelper.classList.add('hidden');
+      } else {
+        indicator.className = 'w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse';
+        text.textContent = 'Modo Local activo (Configura tu URL y Anon Key de Supabase para nube)';
+        if (demoHelper) demoHelper.classList.remove('hidden');
+      }
+    }
+
+    function openSupabaseConfigModal() {
+      document.getElementById('sb-url-input').value = localStorage.getItem(STORAGE_KEYS.SB_URL) || '';
+      document.getElementById('sb-key-input').value = localStorage.getItem(STORAGE_KEYS.SB_KEY) || '';
+      const modal = document.getElementById('supabase-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSupabaseConfigModal() {
+      const modal = document.getElementById('supabase-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function handleSaveSupabaseConfig(e) {
+      e.preventDefault();
+      const url = document.getElementById('sb-url-input').value.trim();
+      const key = document.getElementById('sb-key-input').value.trim();
+      if (!url || !key) {
+        showToast('Ingresa la URL y la Anon Public Key de Supabase', 'warning');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEYS.SB_URL, url);
+      localStorage.setItem(STORAGE_KEYS.SB_KEY, key);
+      initSupabaseFromStorage();
+      closeSupabaseConfigModal();
+      showToast('Credenciales guardadas. Sincronizando datos...', 'success');
+      await loadStorefrontData();
+    }
+
+    async function resetSupabaseConfig() {
+      localStorage.removeItem(STORAGE_KEYS.SB_URL);
+      localStorage.removeItem(STORAGE_KEYS.SB_KEY);
+      supabaseClient = null;
+      isSupabaseConnected = false;
+      updateDbStatusUI(false);
+      closeSupabaseConfigModal();
+      showToast('Se activó el modo de almacenamiento local', 'info');
+      await loadStorefrontData();
+    }
+
+    // =====================================================================
+    // CAPA DE DATOS (SUPABASE + FALLBACK LOCAL PERSISTENTE)
+    // =====================================================================
+    async function loadStorefrontData() {
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          // 1. Obtener configuración del negocio
+          const { data: settingsData, error: setErr } = await supabaseClient
+            .from('business_settings')
+            .select('*')
+            .limit(1)
+            .maybeSingle();
+
+          if (!setErr && settingsData) {
+            settingsState = settingsData;
+          }
+
+          // 2. Obtener productos
+          const { data: prodData, error: prodErr } = await supabaseClient
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+          if (!prodErr && prodData) {
+            productsState = prodData;
+          } else if (prodErr) {
+            throw prodErr;
+          }
+        } else {
+          // Persistencia local
+          const savedSettings = localStorage.getItem(STORAGE_KEYS.LOCAL_SETTINGS);
+          settingsState = savedSettings ? JSON.parse(savedSettings) : { ...DEFAULT_SETTINGS };
+
+          const savedProducts = localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS);
+          if (savedProducts) {
+            productsState = JSON.parse(savedProducts);
+          } else {
+            productsState = [...DEFAULT_PRODUCTS];
+            localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+          }
+        }
+
+        applyBusinessSettingsToUI();
+        renderStorefrontProducts();
+        syncCartPricesWithCatalog();
+        renderCart();
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+        showToast('Error al consultar la base de datos. Verifica tus tablas en Supabase.', 'error');
+      }
+    }
+
+    function applyBusinessSettingsToUI() {
+      const name = settingsState.business_name || 'HORNEADOS DANI';
+      const addr = settingsState.address || 'Barrio Amboró, calle Beni';
+      const wa = settingsState.whatsapp_number || '59178142994';
+      const localPhone = wa.startsWith('591') ? wa.slice(3) : wa;
+      const hours = settingsState.business_hours ? settingsState.business_hours : 'Consultar disponibilidad por WhatsApp';
+
+      document.getElementById('header-business-name').textContent = name;
+      document.getElementById('hero-address').textContent = addr;
+      document.getElementById('hero-whatsapp').textContent = localPhone;
+      document.getElementById('hero-hours').textContent = hours;
+      document.getElementById('footer-address').textContent = `${addr} — Santa Cruz de la Sierra, Bolivia`;
+      document.getElementById('footer-whatsapp').textContent = `WhatsApp: +${wa}`;
+      document.getElementById('footer-hours').textContent = `Horario: ${hours}`;
+      document.getElementById('checkout-pickup-address').textContent = `${addr} (Santa Cruz de la Sierra).`;
+    }
+
+    function renderStorefrontProducts() {
+      const grid = document.getElementById('products-grid');
+      if (!productsState.length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-brand-brownLight">No hay productos registrados en el catálogo.</div>`;
+        return;
+      }
+
+      grid.innerHTML = productsState.map(product => {
+        const priceNum = parseFloat(product.price) || 0;
+        const hasValidPrice = priceNum > 0;
+        const isAvailable = product.available && hasValidPrice;
+
+        let badgeHtml = '';
+        if (!product.available) {
+          badgeHtml = `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">Agotado</span>`;
+        } else if (!hasValidPrice) {
+          badgeHtml = `<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-extrabold text-xs">Precio por definir</span>`;
+        } else {
+          badgeHtml = `<span class="px-3 py-1 rounded-full bg-green-100 text-green-800 font-extrabold text-xs">Disponible</span>`;
+        }
+
+        return `
+          <article class="bg-brand-cream/60 rounded-[2rem] overflow-hidden border border-brand-creamDark shadow-sm hover:shadow-xl transition flex flex-col">
+            <div class="relative aspect-[4/3] bg-brand-creamDark overflow-hidden">
+              <img
+                src="${product.image_url || 'https://placehold.co/600x450/F5EBDD/3D2314?text=Empanada'}"
+                onerror="this.src='https://placehold.co/600x450/F5EBDD/3D2314?text=Empanada'"
+                alt="${product.name}"
+                class="w-full h-full object-cover hover:scale-105 transition duration-500 ${!isAvailable ? 'grayscale opacity-75' : ''}"
+              />
+              <div class="absolute top-4 right-4">${badgeHtml}</div>
+            </div>
+
+            <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+              <div>
+                <div class="flex items-start justify-between gap-2">
+                  <h3 class="font-display text-xl font-extrabold text-brand-brown">${product.name}</h3>
+                  <span class="font-extrabold text-xl text-brand-orange shrink-0">
+                    ${hasValidPrice ? formatBs(priceNum) : 'Bs --'}
+                  </span>
+                </div>
+                <p class="text-sm text-brand-brownLight mt-2 leading-relaxed">${product.description || ''}</p>
+              </div>
+
+              <button
+                onclick="addToCart('${product.id}')"
+                ${!isAvailable ? 'disabled' : ''}
+                class="w-full py-3.5 px-5 rounded-2xl font-extrabold text-sm transition flex items-center justify-center gap-2 ${
+                  isAvailable
+                    ? 'bg-brand-orange hover:bg-brand-orangeHover text-white shadow-md shadow-brand-orange/20'
+                    : 'bg-stone-200 text-stone-500 cursor-not-allowed'
+                }"
+              >
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                ${isAvailable ? 'AGREGAR AL PEDIDO' : (!product.available ? 'NO DISPONIBLE' : 'PRECIO PENDIENTE EN ADMIN')}
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // =====================================================================
+    // CARRITO DE COMPRAS (PERSISTENTE EN LOCALSTORAGE)
+    // =====================================================================
+    function loadCartFromStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEYS.CART);
+        cartState = saved ? JSON.parse(saved) : [];
+      } catch {
+        cartState = [];
+      }
+    }
+
+    function saveCartToStorage() {
+      localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(cartState));
+    }
+
+    function syncCartPricesWithCatalog() {
+      // Actualiza los precios del carrito activo con los precios vigentes del catálogo
+      cartState = cartState.filter(item => {
+        const prod = productsState.find(p => p.id === item.product_id);
+        if (!prod || !prod.available || parseFloat(prod.price) <= 0) return false;
+        item.name = prod.name;
+        item.price = parseFloat(prod.price);
+        return true;
+      });
+      saveCartToStorage();
+    }
+
+    function addToCart(productId) {
+      const product = productsState.find(p => p.id === productId);
+      if (!product || !product.available || parseFloat(product.price) <= 0) {
+        showToast('Este producto no está disponible actualmente', 'warning');
+        return;
+      }
+
+      const existing = cartState.find(item => item.product_id === productId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cartState.push({
+          product_id: product.id,
+          name: product.name,
+          price: parseFloat(product.price),
+          quantity: 1
+        });
+      }
+
+      saveCartToStorage();
+      renderCart();
+      showToast(`+1 ${product.name} agregada al pedido`, 'success');
+    }
+
+    function updateCartQuantity(productId, delta) {
+      const index = cartState.findIndex(item => item.product_id === productId);
+      if (index === -1) return;
+
+      cartState[index].quantity += delta;
+      if (cartState[index].quantity <= 0) {
+        cartState.splice(index, 1);
+      }
+      saveCartToStorage();
+      renderCart();
+    }
+
+    function removeFromCart(productId) {
+      cartState = cartState.filter(item => item.product_id !== productId);
+      saveCartToStorage();
+      renderCart();
+    }
+
+    async function clearCart() {
+      const ok = await showConfirm('Vaciar carrito', '¿Deseas eliminar todos los productos de tu pedido actual?');
+      if (!ok) return;
+      cartState = [];
+      saveCartToStorage();
+      renderCart();
+    }
+
+    function handleOrderTypeChange() {
+      const orderType = document.querySelector('input[name="order_type"]:checked').value;
+      const pickupBox = document.getElementById('pickup-info-box');
+      const deliveryBox = document.getElementById('delivery-fields-box');
+
+      if (orderType === 'Delivery') {
+        pickupBox.classList.add('hidden');
+        deliveryBox.classList.remove('hidden');
+      } else {
+        pickupBox.classList.remove('hidden');
+        deliveryBox.classList.add('hidden');
+      }
+      renderCart();
+    }
+
+    function calculateTotals() {
+      const subtotal = cartState.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const orderType = document.querySelector('input[name="order_type"]:checked')?.value || 'Recoger en el negocio';
+      const configuredDelivery = parseFloat(settingsState.delivery_fee) || 0;
+      const deliveryFee = (orderType === 'Delivery' && configuredDelivery > 0) ? configuredDelivery : 0;
+      const total = subtotal + deliveryFee;
+
+      return { subtotal, deliveryFee, total, orderType, configuredDelivery };
+    }
+
+    function renderCart() {
+      const totalItems = cartState.reduce((acc, item) => acc + item.quantity, 0);
+      const { subtotal, deliveryFee, total, orderType, configuredDelivery } = calculateTotals();
+
+      // Badges
+      document.getElementById('cart-badge-count').textContent = totalItems;
+      const mobileBar = document.getElementById('mobile-floating-cart');
+      if (totalItems > 0) {
+        mobileBar.classList.remove('hidden');
+        document.getElementById('mobile-cart-count').textContent = totalItems;
+        document.getElementById('mobile-cart-total').textContent = formatBs(total);
+      } else {
+        mobileBar.classList.add('hidden');
+      }
+
+      const listEl = document.getElementById('cart-items-list');
+      const clearBtn = document.getElementById('clear-cart-btn');
+
+      if (cartState.length === 0) {
+        clearBtn.classList.add('hidden');
+        listEl.innerHTML = `
+          <div class="text-center py-8 px-4 bg-white rounded-3xl border border-dashed border-brand-creamDark">
+            <i data-lucide="shopping-bag" class="w-10 h-10 mx-auto text-brand-brownLight/40 mb-2"></i>
+            <p class="text-sm font-bold text-brand-brown">Tu carrito está vacío</p>
+            <p class="text-xs text-brand-brownLight mt-1">Agrega empanadas del menú para realizar tu pedido.</p>
+          </div>
+        `;
+      } else {
+        clearBtn.classList.remove('hidden');
+        listEl.innerHTML = cartState.map(item => `
+          <div class="bg-white p-4 rounded-2xl border border-brand-creamDark flex items-center justify-between gap-3 shadow-sm">
+            <div class="min-w-0 flex-1">
+              <p class="font-bold text-sm text-brand-brown truncate">${item.name}</p>
+              <p class="text-xs text-brand-brownLight">${formatBs(item.price)} c/u</p>
+              <p class="text-xs font-extrabold text-brand-orange mt-0.5">Subtotal: ${formatBs(item.price * item.quantity)}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="updateCartQuantity('${item.product_id}', -1)" class="w-8 h-8 rounded-xl bg-brand-cream hover:bg-brand-creamDark font-extrabold text-brand-brown flex items-center justify-center">-</button>
+              <span class="w-6 text-center font-extrabold text-sm">${item.quantity}</span>
+              <button onclick="updateCartQuantity('${item.product_id}', 1)" class="w-8 h-8 rounded-xl bg-brand-cream hover:bg-brand-creamDark font-extrabold text-brand-brown flex items-center justify-center">+</button>
+              <button onclick="removeFromCart('${item.product_id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-xl ml-1" title="Eliminar">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Actualizar resumen de importes
+      document.getElementById('summary-subtotal').textContent = formatBs(subtotal);
+      const deliveryRow = document.getElementById('summary-delivery-row');
+      const deliveryNotice = document.getElementById('delivery-fee-notice');
+
+      if (orderType === 'Delivery' && configuredDelivery > 0) {
+        deliveryRow.classList.remove('hidden');
+        deliveryRow.classList.add('flex');
+        document.getElementById('summary-delivery').textContent = formatBs(deliveryFee);
+        deliveryNotice.innerHTML = `<span class="text-brand-orange font-bold">Costo de delivery configurado: ${formatBs(configuredDelivery)}</span>`;
+      } else {
+        deliveryRow.classList.add('hidden');
+        deliveryRow.classList.remove('flex');
+        deliveryNotice.innerHTML = `<span>El costo de envío se coordinará directamente por WhatsApp.</span>`;
+      }
+
+      document.getElementById('summary-total').textContent = formatBs(total);
+      lucide.createIcons();
+    }
+
+    function openCartDrawer() {
+      document.getElementById('cart-drawer-overlay').classList.remove('hidden');
+      document.getElementById('cart-drawer').classList.remove('translate-x-full');
+      renderCart();
+    }
+
+    function closeCartDrawer() {
+      document.getElementById('cart-drawer-overlay').classList.add('hidden');
+      document.getElementById('cart-drawer').classList.add('translate-x-full');
+    }
+
+    // =====================================================================
+    // REGISTRO DE PEDIDO E INTEGRACIÓN EXACTA CON WHATSAPP
+    // =====================================================================
+    async function submitOrderToWhatsApp() {
+      if (cartState.length === 0) {
+        showToast('Agrega al menos una empanada a tu pedido', 'warning');
+        return;
+      }
+
+      const customerName = document.getElementById('cust-name').value.trim();
+      const customerPhone = document.getElementById('cust-phone').value.trim();
+      const orderType = document.querySelector('input[name="order_type"]:checked').value;
+      const addressInput = document.getElementById('cust-address').value.trim();
+      const refInput = document.getElementById('cust-reference').value.trim();
+      const observations = document.getElementById('cust-observations').value.trim();
+
+      if (!customerName || !customerPhone) {
+        showToast('Por favor ingresa tu nombre y número de teléfono', 'warning');
+        return;
+      }
+
+      if (orderType === 'Delivery' && !addressInput) {
+        showToast('Por favor ingresa tu dirección de entrega para el Delivery', 'warning');
+        return;
+      }
+
+      const fullAddress = orderType === 'Delivery'
+        ? (refInput ? `${addressInput} (Ref: ${refInput})` : addressInput)
+        : (settingsState.address || 'Barrio Amboró, calle Beni');
+
+      const { subtotal, deliveryFee, total } = calculateTotals();
+      const orderNumber = `HD-${Date.now().toString().slice(-6)}`;
+
+      const btn = document.getElementById('confirm-whatsapp-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<span>Registrando pedido...</span>`;
+
+      try {
+        // 1. Registrar pedido en la base de datos (Supabase o LocalStorage)
+        const orderPayload = {
+          order_number: orderNumber,
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          order_type: orderType,
+          delivery_address: fullAddress,
+          observations: observations || 'Ninguna',
+          subtotal: subtotal,
+          delivery_fee: deliveryFee,
+          total: total,
+          status: 'Pendiente',
+          created_at: new Date().toISOString()
+        };
+
+        if (isSupabaseConnected && supabaseClient) {
+          const { data: insertedOrder, error: orderError } = await supabaseClient
+            .from('orders')
+            .insert([orderPayload])
+            .select()
+            .single();
+
+          if (orderError) throw orderError;
+
+          // Guardar precios históricos en order_items
+          const itemsPayload = cartState.map(item => ({
+            order_id: insertedOrder.id,
+            product_id: item.product_id,
+            product_name: item.name,
+            quantity: item.quantity,
+            unit_price: item.price,
+            subtotal: item.price * item.quantity
+          }));
+
+          const { error: itemsError } = await supabaseClient
+            .from('order_items')
+            .insert(itemsPayload);
+
+          if (itemsError) throw itemsError;
+        } else {
+          // Guardado local con precios históricos congelados
+          const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_ORDERS) || '[]');
+          localOrders.unshift({
+            id: crypto.randomUUID(),
+            ...orderPayload,
+            items: cartState.map(item => ({
+              product_id: item.product_id,
+              product_name: item.name,
+              quantity: item.quantity,
+              unit_price: item.price,
+              subtotal: item.price * item.quantity
+            }))
+          });
+          localStorage.setItem(STORAGE_KEYS.LOCAL_ORDERS, JSON.stringify(localOrders));
+        }
+
+        // 2. Construir mensaje oficial de WhatsApp según formato solicitado
+        const productLines = cartState
+          .map(item => `- ${item.name}: ${item.quantity} x Bs ${item.price.toFixed(2)}`)
+          .join('\n');
+
+        const deliveryLine = deliveryFee > 0 ? `Delivery: Bs ${deliveryFee.toFixed(2)}\n` : '';
+        const addressLine = orderType === 'Delivery'
+          ? `Dirección: ${fullAddress}\n`
+          : `Dirección: Recoger en ${fullAddress}\n`;
+
+        const whatsappMessage =
+`Hola, ${settingsState.business_name || 'HORNEADOS DANI'}. Quiero realizar el siguiente pedido:
+Número de pedido: ${orderNumber}.
+Cliente: ${customerName}.
+Teléfono: ${customerPhone}.
+Modalidad: ${orderType}.
+${addressLine}PRODUCTOS:
+${productLines}
+Subtotal: Bs ${subtotal.toFixed(2)}.
+${deliveryLine}TOTAL: Bs ${total.toFixed(2)}.
+Observaciones: ${observations || 'Ninguna'}.`;
+
+        const waNumber = (settingsState.whatsapp_number || '59178142994').replace(/\D/g, '');
+        const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+        // 3. Limpiar carrito tras confirmar
+        cartState = [];
+        saveCartToStorage();
+        renderCart();
+        closeCartDrawer();
+
+        showToast(`Pedido ${orderNumber} registrado. Abriendo WhatsApp...`, 'success');
+
+        // 4. Abrir WhatsApp
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.error('Error registrando pedido:', err);
+        showToast('Hubo un problema al registrar el pedido. Intenta nuevamente.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> CONFIRMAR Y ENVIAR POR WHATSAPP`;
+        lucide.createIcons();
+      }
+    }
+
+    // =====================================================================
+    // NAVEGACIÓN ENTRE TIENDA VIRTUAL Y PANEL ADMINISTRATIVO (/admin)
+    // =====================================================================
+    function toggleAppModule() {
+      const adminVisible = !document.getElementById('admin-module').classList.contains('hidden');
+      if (adminVisible) {
+        switchToStorefront();
+      } else {
+        switchToAdmin();
+      }
+    }
+
+    function switchToStorefront() {
+      document.getElementById('admin-module').classList.add('hidden');
+      document.getElementById('storefront-module').classList.remove('hidden');
+      document.getElementById('nav-switch-label').textContent = 'Panel Admin (/admin)';
+      window.history.replaceState({}, '', '#');
+      loadStorefrontData();
+    }
+
+    async function switchToAdmin() {
+      document.getElementById('storefront-module').classList.add('hidden');
+      document.getElementById('admin-module').classList.remove('hidden');
+      document.getElementById('nav-switch-label').textContent = 'Volver a la Tienda';
+      window.history.replaceState({}, '', '#admin');
+
+      await checkAdminAuthSession();
+    }
+
+    // =====================================================================
+    // AUTENTICACIÓN Y SEGURIDAD DEL PANEL ADMINISTRATIVO
+    // =====================================================================
+    async function checkAdminAuthSession() {
+      if (isSupabaseConnected && supabaseClient) {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentAdminUser = session.user;
+          showAdminDashboard(session.user.email);
+          return;
+        }
+      } else {
+        const demoSession = sessionStorage.getItem(STORAGE_KEYS.DEMO_AUTH);
+        if (demoSession) {
+          currentAdminUser = { email: demoSession };
+          showAdminDashboard(demoSession);
+          return;
+        }
+      }
+
+      // Mostrar pantalla de login si no hay sesión válida
+      document.getElementById('admin-login-screen').classList.remove('hidden');
+      document.getElementById('admin-dashboard-shell').classList.add('hidden');
+    }
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value;
+
+      if (!isSupabaseConnected || !supabaseClient) {
+        showToast('Conecta Supabase primero o usa el botón de Modo Demostración Local.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('admin-login-submit');
+      btn.disabled = true;
+      btn.textContent = 'Verificando credenciales...';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        currentAdminUser = data.user;
+        showToast('Bienvenido al panel de HORNEADOS DANI', 'success');
+        showAdminDashboard(data.user.email);
+      } catch (err) {
+        showToast(err.message || 'Credenciales incorrectas', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> Iniciar Sesión`;
+        lucide.createIcons();
+      }
+    }
+
+    function loginDemoMode() {
+      sessionStorage.setItem(STORAGE_KEYS.DEMO_AUTH, 'admin-local@horneadosdani.com');
+      currentAdminUser = { email: 'admin-local@horneadosdani.com' };
+      showToast('Acceso concedido en Modo Local', 'info');
+      showAdminDashboard('admin-local@horneadosdani.com');
+    }
+
+    async function handlePasswordRecovery() {
+      const email = document.getElementById('admin-email').value.trim();
+      if (!email) {
+        showToast('Escribe tu correo electrónico arriba para enviarte el enlace de recuperación', 'warning');
+        return;
+      }
+      if (!isSupabaseConnected || !supabaseClient) {
+        showToast('La recuperación de contraseña por correo requiere conectar Supabase Auth.', 'info');
+        return;
+      }
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.href
+      });
+      if (error) {
+        showToast(error.message, 'error');
+      } else {
+        showToast('Se envió un correo de recuperación de contraseña', 'success');
+      }
+    }
+
+    async function handleAdminLogout() {
+      if (isSupabaseConnected && supabaseClient) {
+        await supabaseClient.auth.signOut();
+      }
+      sessionStorage.removeItem(STORAGE_KEYS.DEMO_AUTH);
+      currentAdminUser = null;
+      document.getElementById('admin-dashboard-shell').classList.add('hidden');
+      document.getElementById('admin-login-screen').classList.remove('hidden');
+      showToast('Sesión cerrada correctamente', 'info');
+    }
+
+    async function showAdminDashboard(email) {
+      document.getElementById('admin-login-screen').classList.add('hidden');
+      document.getElementById('admin-dashboard-shell').classList.remove('hidden');
+      document.getElementById('admin-user-email').textContent = email;
+      await refreshAdminData();
+    }
+
+    // =====================================================================
+    // OPERACIONES DEL PANEL ADMINISTRATIVO
+    // =====================================================================
+    function switchAdminTab(tabName) {
+      ['dashboard', 'orders', 'products', 'settings'].forEach(t => {
+        document.getElementById(`admin-tab-${t}`).classList.add('hidden');
+      });
+      document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
+
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.classList.add('bg-brand-orange', 'text-white');
+          btn.classList.remove('text-brand-cream/80', 'hover:bg-white/10');
+        } else {
+          btn.classList.remove('bg-brand-orange', 'text-white');
+          btn.classList.add('text-brand-cream/80', 'hover:bg-white/10');
+        }
+      });
+    }
+
+    async function refreshAdminData() {
+      await loadStorefrontData();
+
+      if (isSupabaseConnected && supabaseClient) {
+        const { data: ordersData, error } = await supabaseClient
+          .from('orders')
+          .select('*, order_items(*)')
+          .order('created_at', { ascending: false });
+
+        if (!error && ordersData) {
+          ordersState = ordersData.map(o => ({
+            ...o,
+            items: o.order_items || []
+          }));
+        }
+      } else {
+        ordersState = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_ORDERS) || '[]');
+      }
+
+      renderAdminKPIs();
+      renderSalesChart();
+      renderAdminOrders();
+      renderAdminProducts();
+      populateSettingsForm();
+      lucide.createIcons();
+    }
+
+    function renderAdminKPIs() {
+      const total = ordersState.length;
+      const pending = ordersState.filter(o => o.status === 'Pendiente').length;
+      const confirmed = ordersState.filter(o => o.status === 'Confirmado').length;
+      const delivered = ordersState.filter(o => o.status === 'Entregado').length;
+
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      const monthStr = now.toISOString().slice(0, 7);
+
+      const validOrders = ordersState.filter(o => o.status !== 'Cancelado');
+      const todaySales = validOrders
+        .filter(o => (o.created_at || '').startsWith(todayStr))
+        .reduce((acc, o) => acc + (parseFloat(o.total) || 0), 0);
+
+      const monthSales = validOrders
+        .filter(o => (o.created_at || '').startsWith(monthStr))
+        .reduce((acc, o) => acc + (parseFloat(o.total) || 0), 0);
+
+      const availableCount = productsState.filter(p => p.available && parseFloat(p.price) > 0).length;
+
+      document.getElementById('kpi-total-orders').textContent = total;
+      document.getElementById('kpi-pending-orders').textContent = pending;
+      document.getElementById('kpi-confirmed-orders').textContent = confirmed;
+      document.getElementById('kpi-delivered-orders').textContent = delivered;
+      document.getElementById('kpi-today-sales').textContent = formatBs(todaySales);
+      document.getElementById('kpi-month-sales').textContent = formatBs(monthSales);
+      document.getElementById('kpi-available-products').textContent = `${availableCount} / ${productsState.length}`;
+      document.getElementById('sidebar-pending-badge').textContent = pending;
+    }
+
+    function renderSalesChart() {
+      const ctx = document.getElementById('salesChart');
+      if (!ctx) return;
+
+      const labels = [];
+      const totals = [];
+      const validOrders = ordersState.filter(o => o.status !== 'Cancelado');
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().slice(0, 10);
+        labels.push(d.toLocaleDateString('es-BO', { weekday: 'short', day: 'numeric' }));
+        const sum = validOrders
+          .filter(o => (o.created_at || '').startsWith(iso))
+          .reduce((acc, o) => acc + (parseFloat(o.total) || 0), 0);
+        totals.push(sum);
+      }
+
+      if (salesChartInstance) {
+        salesChartInstance.destroy();
+      }
+
+      salesChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Ventas (Bs)',
+            data: totals,
+            backgroundColor: '#D95D1E',
+            borderRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // GESTIÓN DE PEDIDOS EN ADMIN
+    function renderAdminOrders() {
+      const dateFilter = document.getElementById('filter-order-date').value;
+      const statusFilter = document.getElementById('filter-order-status').value;
+      const typeFilter = document.getElementById('filter-order-type').value;
+
+      const filtered = ordersState.filter(o => {
+        if (dateFilter && !(o.created_at || '').startsWith(dateFilter)) return false;
+        if (statusFilter && o.status !== statusFilter) return false;
+        if (typeFilter && o.order_type !== typeFilter) return false;
+        return true;
+      });
+
+      const container = document.getElementById('admin-orders-list');
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white p-10 rounded-3xl text-center text-stone-500 border border-stone-200">
+            No se encontraron pedidos con los filtros seleccionados.
+          </div>
+        `;
+        return;
+      }
+
+      const statuses = [
+        'Pendiente',
+        'Confirmado',
+        'En preparación',
+        'Listo para recoger',
+        'En camino',
+        'Entregado',
+        'Cancelado'
+      ];
+
+      container.innerHTML = filtered.map(order => {
+        const dateFormatted = new Date(order.created_at).toLocaleString('es-BO');
+        const itemsHtml = (order.items || []).map(it =>
+          `<li class="flex justify-between text-xs py-1 border-b border-stone-100 last:border-0">
+            <span><strong>${it.quantity}x</strong> ${it.product_name} (${formatBs(it.unit_price)} c/u)</span>
+            <span class="font-bold">${formatBs(it.subtotal)}</span>
+          </li>`
+        ).join('');
+
+        return `
+          <div class="bg-white p-5 sm:p-6 rounded-3xl border border-stone-200/80 shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
+              <div>
+                <span class="px-3 py-1 rounded-xl bg-brand-brown text-white font-extrabold text-xs">${order.order_number}</span>
+                <span class="text-xs text-stone-500 ml-2">${dateFormatted}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-stone-500">Estado:</label>
+                <select onchange="updateOrderStatus('${order.id}', this.value)" class="px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-extrabold bg-stone-50 focus:ring-2 focus:ring-brand-orange">
+                  ${statuses.map(st => `<option value="${st}" ${order.status === st ? 'selected' : ''}>${st}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 text-sm">
+              <div class="space-y-1">
+                <p><strong class="text-stone-500">Cliente:</strong> ${order.customer_name}</p>
+                <p><strong class="text-stone-500">Teléfono:</strong> ${order.customer_phone}</p>
+                <p><strong class="text-stone-500">Modalidad:</strong> <span class="font-bold text-brand-orange">${order.order_type}</span></p>
+                <p><strong class="text-stone-500">Dirección:</strong> ${order.delivery_address || 'Recoge en local'}</p>
+                <p><strong class="text-stone-500">Observaciones:</strong> ${order.observations || 'Ninguna'}</p>
+              </div>
+              <div class="bg-stone-50 p-4 rounded-2xl">
+                <p class="text-xs font-extrabold uppercase text-stone-400 mb-2">Detalle (Precios Históricos)</p>
+                <ul class="space-y-1 mb-3">${itemsHtml}</ul>
+                <div class="text-xs space-y-1 pt-2 border-t border-stone-200">
+                  <div class="flex justify-between"><span>Subtotal:</span><span>${formatBs(order.subtotal)}</span></div>
+                  <div class="flex justify-between"><span>Delivery:</span><span>${formatBs(order.delivery_fee)}</span></div>
+                  <div class="flex justify-between text-sm font-extrabold text-brand-brown pt-1">
+                    <span>TOTAL:</span><span class="text-brand-orange">${formatBs(order.total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient
+            .from('orders')
+            .update({ status: newStatus })
+            .eq('id', orderId);
+          if (error) throw error;
+        } else {
+          const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_ORDERS) || '[]');
+          const idx = localOrders.findIndex(o => o.id === orderId);
+          if (idx !== -1) {
+            localOrders[idx].status = newStatus;
+            localStorage.setItem(STORAGE_KEYS.LOCAL_ORDERS, JSON.stringify(localOrders));
+          }
+        }
+        showToast(`Estado actualizado a "${newStatus}"`, 'success');
+        await refreshAdminData();
+      } catch (err) {
+        console.error(err);
+        showToast('Error al actualizar estado del pedido', 'error');
+      }
+    }
+
+    // ADMINISTRACIÓN DE PRODUCTOS Y PRECIOS
+    function renderAdminProducts() {
+      const grid = document.getElementById('admin-products-grid');
+      grid.innerHTML = productsState.map(prod => `
+        <div class="bg-white rounded-3xl border border-stone-200/80 overflow-hidden shadow-sm flex flex-col">
+          <div class="relative h-44 bg-stone-100">
+            <img src="${prod.image_url || 'https://placehold.co/600x400?text=Empanada'}" onerror="this.src='https://placehold.co/600x400?text=Empanada'" class="w-full h-full object-cover" />
+            <span class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-extrabold ${prod.available ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}">
+              ${prod.available ? 'Activo' : 'Agotado / Inactivo'}
+            </span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="font-display text-lg font-extrabold text-brand-brown">${prod.name}</h3>
+              <p class="text-xs text-stone-500 mt-1 line-clamp-2">${prod.description || ''}</p>
+            </div>
+
+            <!-- Control directo de Precio en Bs -->
+            <div class="p-3.5 rounded-2xl bg-brand-cream/70 border border-brand-creamDark">
+              <label class="block text-[11px] font-extrabold uppercase text-brand-brownLight mb-1">Precio Vigente (Bs)</label>
+              <div class="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.50"
+                  min="0"
+                  id="quick-price-${prod.id}"
+                  value="${parseFloat(prod.price) || 0}"
+                  class="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white font-extrabold text-brand-orange text-base"
+                />
+                <button onclick="quickUpdatePrice('${prod.id}')" class="px-3.5 py-2 rounded-xl bg-brand-brown hover:bg-brand-orange text-white text-xs font-bold transition shrink-0">
+                  Aplicar
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-stone-100">
+              <button onclick="toggleProductAvailability('${prod.id}', ${!prod.available})" class="px-3 py-2 rounded-xl text-xs font-bold ${prod.available ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}">
+                ${prod.available ? 'Marcar Agotado' : 'Activar'}
+              </button>
+              <div class="flex gap-1.5">
+                <button onclick="openProductModal('${prod.id}')" class="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700" title="Editar producto">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+                <button onclick="deleteProduct('${prod.id}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600" title="Eliminar producto">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    async function quickUpdatePrice(productId) {
+      const input = document.getElementById(`quick-price-${productId}`);
+      const newPrice = parseFloat(input.value);
+      if (isNaN(newPrice) || newPrice < 0) {
+        showToast('Ingresa un precio válido en Bolivianos', 'warning');
+        return;
+      }
+
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient
+            .from('products')
+            .update({ price: newPrice, updated_at: new Date().toISOString() })
+            .eq('id', productId);
+          if (error) throw error;
+        } else {
+          const idx = productsState.findIndex(p => p.id === productId);
+          if (idx !== -1) {
+            productsState[idx].price = newPrice;
+            localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+          }
+        }
+        showToast(`Precio actualizado a ${formatBs(newPrice)}`, 'success');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al actualizar precio: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleProductAvailability(productId, newState) {
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient
+            .from('products')
+            .update({ available: newState, updated_at: new Date().toISOString() })
+            .eq('id', productId);
+          if (error) throw error;
+        } else {
+          const idx = productsState.findIndex(p => p.id === productId);
+          if (idx !== -1) {
+            productsState[idx].available = newState;
+            localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+          }
+        }
+        showToast(newState ? 'Producto activado en tienda' : 'Producto marcado como agotado', 'info');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al cambiar disponibilidad', 'error');
+      }
+    }
+
+    function openProductModal(productId = null) {
+      const modal = document.getElementById('product-modal');
+      document.getElementById('product-form').reset();
+      document.getElementById('prod-id').value = productId || '';
+
+      if (productId) {
+        const prod = productsState.find(p => p.id === productId);
+        if (prod) {
+          document.getElementById('product-modal-title').textContent = 'Editar Producto';
+          document.getElementById('prod-name').value = prod.name;
+          document.getElementById('prod-desc').value = prod.description || '';
+          document.getElementById('prod-price').value = parseFloat(prod.price) || 0;
+          document.getElementById('prod-available').value = prod.available ? 'true' : 'false';
+          document.getElementById('prod-image-url').value = prod.image_url || '';
+        }
+      } else {
+        document.getElementById('product-modal-title').textContent = 'Nuevo Producto';
+        document.getElementById('prod-price').value = 0;
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProductModal() {
+      const modal = document.getElementById('product-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('prod-id').value;
+      const name = document.getElementById('prod-name').value.trim();
+      const description = document.getElementById('prod-desc').value.trim();
+      const price = parseFloat(document.getElementById('prod-price').value) || 0;
+      const available = document.getElementById('prod-available').value === 'true';
+      let imageUrl = document.getElementById('prod-image-url').value.trim();
+      const fileInput = document.getElementById('prod-image-file');
+
+      const btn = document.getElementById('save-product-btn');
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      try {
+        // Subida a Supabase Storage si se seleccionó un archivo
+        if (fileInput.files && fileInput.files[0]) {
+          const file = fileInput.files[0];
+          if (isSupabaseConnected && supabaseClient) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+            const { error: uploadError } = await supabaseClient.storage
+              .from('product-images')
+              .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: publicUrlData } = supabaseClient.storage
+              .from('product-images')
+              .getPublicUrl(fileName);
+
+            imageUrl = publicUrlData.publicUrl;
+          } else {
+            imageUrl = URL.createObjectURL(file);
+          }
+        }
+
+        const payload = {
+          name,
+          description,
+          price,
+          available,
+          image_url: imageUrl,
+          updated_at: new Date().toISOString()
+        };
+
+        if (isSupabaseConnected && supabaseClient) {
+          if (id) {
+            const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
+            if (error) throw error;
+          } else {
+            const { error } = await supabaseClient.from('products').insert([payload]);
+            if (error) throw error;
+          }
+        } else {
+          if (id) {
+            const idx = productsState.findIndex(p => p.id === id);
+            if (idx !== -1) productsState[idx] = { ...productsState[idx], ...payload };
+          } else {
+            productsState.push({ id: crypto.randomUUID(), ...payload, created_at: new Date().toISOString() });
+          }
+          localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+        }
+
+        closeProductModal();
+        showToast('Producto guardado correctamente', 'success');
+        await refreshAdminData();
+      } catch (err) {
+        console.error(err);
+        showToast('Error al guardar producto: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Guardar Producto';
+      }
+    }
+
+    async function deleteProduct(productId) {
+      const ok = await showConfirm('Eliminar producto', '¿Estás seguro de eliminar este producto del catálogo? Los pedidos históricos no se verán afectados.');
+      if (!ok) return;
+
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient.from('products').delete().eq('id', productId);
+          if (error) throw error;
+        } else {
+          productsState = productsState.filter(p => p.id !== productId);
+          localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+        }
+        showToast('Producto eliminado', 'info');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al eliminar producto: ' + err.message, 'error');
+      }
+    }
+
+    // CONFIGURACIÓN DEL NEGOCIO
+    function populateSettingsForm() {
+      document.getElementById('set-business-name').value = settingsState.business_name || 'HORNEADOS DANI';
+      document.getElementById('set-whatsapp').value = settingsState.whatsapp_number || '59178142994';
+      document.getElementById('set-address').value = settingsState.address || 'Barrio Amboró, calle Beni';
+      document.getElementById('set-delivery-fee').value = parseFloat(settingsState.delivery_fee) || 0;
+      document.getElementById('set-hours').value = settingsState.business_hours || '';
+    }
+
+    async function handleSaveBusinessSettings(e) {
+      e.preventDefault();
+      const updated = {
+        business_name: document.getElementById('set-business-name').value.trim(),
+        whatsapp_number: document.getElementById('set-whatsapp').value.trim().replace(/\D/g, ''),
+        address: document.getElementById('set-address').value.trim(),
+        delivery_fee: parseFloat(document.getElementById('set-delivery-fee').value) || 0,
+        business_hours: document.getElementById('set-hours').value.trim()
+      };
+
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          if (settingsState.id) {
+            const { error } = await supabaseClient
+              .from('business_settings')
+              .update(updated)
+              .eq('id', settingsState.id);
+            if (error) throw error;
+          } else {
+            const { error } = await supabaseClient
+              .from('business_settings')
+              .insert([updated]);
+            if (error) throw error;
+          }
+        } else {
+          settingsState = { ...settingsState, ...updated };
+          localStorage.setItem(STORAGE_KEYS.LOCAL_SETTINGS, JSON.stringify(settingsState));
+        }
+
+        showToast('Configuración del negocio actualizada', 'success');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al guardar configuración: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
