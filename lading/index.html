@@ -1,0 +1,428 @@
+[landing_page_horneados_dani (1).html](https://github.com/user-attachments/files/35380930/landing_page_horneados_dani.1.html)
+esta pagina es para mi lading page
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horneados Dani | Empanadas y Cuñapés Calientitos</title>
+    <style>
+        /* === VARIABLES & BASE === */
+        :root {
+            --primary-color: #E65100; /* Naranja apetitoso */
+            --secondary-color: #FFB300;
+            --text-dark: #2D3748;
+            --text-light: #718096;
+            --bg-light: #FFFBF7;
+            --white: #FFFFFF;
+            --whatsapp-green: #25D366;
+            --whatsapp-hover: #1EBE5D;
+            --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        img, iframe, video {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* === TYPOGRAPHY === */
+        h1 {
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        p {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        /* === LAYOUT & CONTAINERS === */
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 4rem 0;
+        }
+
+        .text-center { text-align: center; }
+
+        /* === HERO SECTION === */
+        .hero {
+            padding: 4rem 0 2rem;
+            text-align: center;
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: var(--text-dark);
+            max-width: 800px;
+            margin: 0 auto 2.5rem;
+            font-weight: 500;
+        }
+
+        /* === MULTIMEDIA PLACEHOLDER === */
+        .media-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(230, 81, 0, 0.15);
+            background: #ffe0b2;
+            position: relative;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* === CTA BUTTONS === */
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background-color: var(--whatsapp-green);
+            color: var(--white);
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(37, 211, 102, 0.4);
+            background-color: var(--whatsapp-hover);
+        }
+
+        /* === BENEFITS SECTION === */
+        .benefits-section {
+            background-color: var(--white);
+            padding: 5rem 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .benefit-card {
+            padding: 2rem;
+            border-radius: 12px;
+            background: var(--bg-light);
+            border: 1px solid #feebc8;
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-card:hover { transform: translateY(-5px); }
+
+        .benefit-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .benefit-card h3 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        /* === TESTIMONIALS SECTION === */
+        .testimonials {
+            padding: 5rem 0;
+        }
+
+        .testimonial-card {
+            background: var(--white);
+            padding: 2.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .stars {
+            color: #FFC107;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .client-name {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        /* === FOOTER & SECOND CTA === */
+        .footer-section {
+            background-color: var(--text-dark);
+            color: var(--white);
+            padding: 4rem 0 2rem;
+            text-align: center;
+        }
+
+        .footer-section h2 {
+            color: var(--white);
+        }
+
+        .location-info {
+            margin: 3rem 0 2rem;
+            font-size: 1.1rem;
+            color: #A0AEC0;
+        }
+
+        /* === FLOATING WHATSAPP BUTTON === */
+        .wa-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--white);
+            color: var(--text-dark);
+            padding: 10px 20px 10px 10px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            z-index: 999;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s ease;
+            border: 2px solid var(--whatsapp-green);
+        }
+
+        .wa-float:hover {
+            transform: scale(1.05);
+        }
+
+        .wa-icon-wrapper {
+            background: var(--whatsapp-green);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wa-icon-wrapper svg {
+            fill: white;
+            width: 24px;
+            height: 24px;
+        }
+
+        .online-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--whatsapp-green);
+            font-size: 0.85rem;
+        }
+
+        .pulsing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--whatsapp-green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+
+        /* Ocultar texto flotante en pantallas muy pequeñas, dejar solo el icono */
+        @media (max-width: 480px) {
+            .wa-text-container { display: none; }
+            .wa-float { padding: 8px; border: none; background: transparent; box-shadow: none;}
+            .wa-icon-wrapper { width: 60px; height: 60px; box-shadow: 0 10px 25px rgba(37,211,102,0.4);}
+            .wa-icon-wrapper svg { width: 34px; height: 34px; }
+            .wa-float .pulsing-dot { position: absolute; top: 10px; right: 10px; border: 2px solid white; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 1. TÍTULO PERSUASIVO (HERO) -->
+    <header class="hero container">
+        <h1>¡El Auténtico Sabor Camba Directo a tu Mesa!</h1>
+        <p class="hero-subtitle">Disfruta de las mejores empanadas, cuñapés y comida casera, horneados al instante con ingredientes frescos y el toque familiar que te encanta.</p>
+        
+        <!-- 2. CONTENEDOR MULTIMEDIA -->
+        <div class="media-container">
+            <iframe src="https://player.vimeo.com/video/1229346597?autoplay=1&muted=1&loop=1&title=0&byline=0&portrait=0" style="width: 100%; height: 100%; border: none;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Video Promocional Horneados Dani"></iframe>
+        </div>
+
+        <!-- 3. FIRST CALL TO ACTION -->
+        <a href="#" class="cta-btn whatsapp-link">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            ¡HACER MI PEDIDO AHORA!
+        </a>
+    </header>
+
+    <!-- 4. SECCIÓN DE BENEFICIOS -->
+    <section class="benefits-section">
+        <div class="container">
+            <h2>¿Por qué nuestros clientes nos prefieren?</h2>
+            <div class="grid grid-4">
+                <div class="benefit-card">
+                    <div class="benefit-icon">👵</div>
+                    <h3>Sabor 100% Casero</h3>
+                    <p>Recetas tradicionales que evocan el sabor de casa en cada bocado.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🧀</div>
+                    <h3>Abundante Queso</h3>
+                    <p>Nuestros cuñapés están cargados de sabor, calidad y mucho queso fresco.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🔥</div>
+                    <h3>Recién Horneados</h3>
+                    <p>Masa crujiente y calientita. Preparamos tandas frescas todos los días.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">⚡</div>
+                    <h3>Atención Rápida</h3>
+                    <p>Pide directo por WhatsApp y tu orden estará lista para disfrutar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. PRUEBA SOCIAL / RESEÑAS -->
+    <section class="testimonials container">
+        <h2>Lo que dicen quienes ya nos probaron</h2>
+        <div class="grid">
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">"Los mejores cuñapés que he probado. El queso es súper abundante y la masa es perfecta, ideales para el cafecito de la tarde. ¡Totalmente recomendados!"</p>
+                <p class="client-name">- Carlos Ribera</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">"Siempre compro empanadas para el desayuno de mi familia los fines de semana. Horneados Dani nunca decepciona, la calidad y la atención es excelente."</p>
+                <p class="client-name">- María Fernanda S.</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">"Fui a su local en el Barrio Amboro y el aroma te atrapa desde la calle Beni. Te entregan todo calientito y el sabor es espectacular. Ya soy cliente fijo."</p>
+                <p class="client-name">- Jorge Mendoza</p>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">"Hice un pedido grande para mi oficina y todos mis colegas quedaron encantados. Excelente servicio y rapidez por WhatsApp."</p>
+                <p class="client-name">- Lucía Torres</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. SECOND CALL TO ACTION & FOOTER -->
+    <footer class="footer-section">
+        <div class="container">
+            <h2>¿Listo para darte un gusto irresistible?</h2>
+            <p>Escríbenos ahora, hacemos que tu pedido esté listo en tiempo récord.</p>
+            <a href="#" class="cta-btn whatsapp-link" style="margin-top: 1rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                PEDIR POR WHATSAPP
+            </a>
+
+            <div class="location-info">
+                <p>📍 Visítanos en: Barrio Amboro, Calle Beni.</p>
+                <p>© 2026 Horneados Dani. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- BOTÓN FLOTANTE WHATSAPP -->
+    <a href="#" class="wa-float whatsapp-link">
+        <div class="wa-icon-wrapper">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        </div>
+        <div class="wa-text-container">
+            <div>¿Hacemos tu pedido?</div>
+            <div class="online-status">
+                <span class="pulsing-dot"></span> Online
+            </div>
+        </div>
+    </a>
+
+    <!-- LÓGICA JAVASCRIPT VANILLA -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configuración del mensaje inductivo para WhatsApp
+            const phoneNumber = '59178142994'; // Número formateado con código internacional
+            const message = encodeURIComponent('¡Hola Horneados Dani! 👋 Vengo de su página web y me encantaría hacer un pedido de sus deliciosas empanadas y cuñapés. ¿Me comparten su menú o disponibilidad por favor?');
+            
+            // Creación del enlace final de la API de WhatsApp
+            const waAPI = `https://wa.me/${phoneNumber}?text=${message}`;
+
+            // Seleccionar todos los botones con la clase 'whatsapp-link'
+            const waButtons = document.querySelectorAll('.whatsapp-link');
+
+            // Asignar el href de manera dinámica a cada botón
+            waButtons.forEach(button => {
+                button.setAttribute('href', waAPI);
+                button.setAttribute('target', '_blank'); // Abrir en nueva pestaña
+                button.setAttribute('rel', 'noopener noreferrer'); // Seguridad web
+            });
+        });
+    </script>
+</body>
+</html>
