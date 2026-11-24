@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="HORNEADOS DANI: empanadas horneadas artesanales de carne, pollo y queso en Santa Cruz de la Sierra. Haz tu pedido para recoger o delivery por WhatsApp." />
+  <meta name="theme-color" content="#371A19" />
+  <title>HORNEADOS DANI | Empanadas Artesanales en Santa Cruz</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Fraunces -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js para métricas administrativas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Fraunces"', 'serif'],
+          },
+          colors: {
+            brand: {
+              cream: '#FFF9F1',
+              creamDark: '#F3E8D8',
+              orange: '#CF542C',
+              orangeHover: '#AB3C1C',
+              gold: '#F0AE5C',
+              goldLight: '#FCE9CC',
+              brown: '#371A19',
+              brownLight: '#755044',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root { --dani-ink:#371A19; --dani-rust:#CF542C; --dani-cream:#FFF9F1; --dani-gold:#F0AE5C; }
+    html { scroll-padding-top: 94px; }
+    body { overflow-x:hidden; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+    .premium-header { box-shadow: 0 8px 30px rgba(55,26,25,.055); }
+    .header-link { position:relative; }
+    .header-link::after { content:''; position:absolute; height:2px; background:#CF542C; left:0; right:100%; bottom:-6px; transition:right .2s; }
+    .header-link:hover::after,.header-link:focus-visible::after { right:0; }
+    .hero-premium { background:#371A19; isolation:isolate; }
+    .hero-premium::before { content:''; position:absolute; left:-13vw; top:-25%; width:65vw; height:65vw; border-radius:50%; background:radial-gradient(circle,rgba(192,89,51,.21),transparent 65%); pointer-events:none; z-index:-1; }
+    .hero-premium::after { content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.17; background-image:radial-gradient(#fff 0.6px,transparent .8px); background-size:21px 21px; mask-image:linear-gradient(to right,transparent,#000); }
+    .hero-main-image { box-shadow: 0 32px 90px rgba(0,0,0,.32); transform:rotate(1deg); transition:transform .4s ease; }
+    .hero-main-image:hover { transform:rotate(0deg) scale(1.008); }
+    .sun-stamp { width:132px; height:132px; display:grid; place-content:center; text-align:center; line-height:1.1; transform:rotate(11deg); box-shadow:0 15px 40px rgba(0,0,0,.16); }
+    .tiny-rule { display:inline-flex; align-items:center; gap:10px; text-transform:uppercase; letter-spacing:.2em; font-size:11px; font-weight:800; }
+    .tiny-rule::before { content:''; width:27px; height:2px; background:currentColor; }
+    .feature-chip { border:1px solid rgba(255,255,255,.2); backdrop-filter:blur(10px); background:rgba(255,255,255,.06); }
+    .menu-top { background:linear-gradient(180deg, #FFF9F1 0%, #fff 100%); }
+    #products-grid .product-card { background:#fff; border:1px solid #F0E6D9; border-radius:24px; overflow:hidden; box-shadow:0 12px 32px rgba(55,26,25,.055); transition:transform .3s,box-shadow .3s; }
+    #products-grid .product-card:hover { transform:translateY(-6px); box-shadow:0 24px 45px rgba(55,26,25,.13); }
+    #products-grid .product-photo { position:relative; aspect-ratio: 1.2/1; overflow:hidden; background:#F5E8D6; }
+    #products-grid .product-photo::after { content:'';position:absolute;bottom:0;inset-inline:0;height:38%;background:linear-gradient(transparent,rgba(55,26,25,.11));pointer-events:none; }
+    #products-grid .product-photo img { width:100%;height:100%;object-fit:cover;transition:transform .65s ease; }
+    #products-grid .product-card:hover .product-photo img { transform:scale(1.055); }
+    #products-grid .product-price { font-family:'Fraunces',serif; font-size:26px; color:#CF542C; white-space:nowrap; }
+    #products-grid .product-card button:focus-visible, .dani-focus:focus-visible { outline:3px solid #F0AE5C; outline-offset:3px; }
+    .steps-number { font-family:'Fraunces',serif; line-height:1; color:rgba(207,84,44,.23); }
+    .quality-pattern { background:radial-gradient(circle at 18% 25%,rgba(240,174,92,.18),transparent 44%),#F5E8D8; }
+    .action-pattern { background-image:radial-gradient(rgba(255,255,255,.12) 1px,transparent 1px); background-size:18px 18px; }
+    .decor-oval { border-radius:52% 48% 46% 54% / 38% 49% 51% 62%; }
+    @media(max-width:767px) { .sun-stamp{width:98px;height:98px;font-size:10px;} .hero-main-image{transform:none;} .hero-main-image:hover{transform:none;} #products-grid .product-photo{aspect-ratio:1.4/1;} }
+    @media(prefers-reduced-motion:reduce) { .hero-main-image,#products-grid .product-card,#products-grid .product-photo img { transition:none!important; transform:none!important; } }
+  </style>
+</head>
+<body class="bg-brand-cream text-brand-brown font-sans antialiased selection:bg-brand-orange selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- NOTIFICACIONES TOAST (Reemplazo seguro de alert() / confirm())        -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO -->
+  <div id="confirm-modal" class="fixed inset-0 z-[95] hidden items-center justify-center bg-brand-brown/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-brand-creamDark">
+      <div class="flex items-center gap-3 text-brand-orange mb-3">
+        <div class="p-3 bg-brand-orange/10 rounded-2xl">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+        <h3 id="confirm-title" class="text-lg font-bold text-brand-brown">Confirmar acción</h3>
+      </div>
+      <p id="confirm-message" class="text-sm text-brand-brownLight mb-6 leading-relaxed"></p>
+      <div class="flex justify-end gap-3">
+        <button id="confirm-cancel-btn" class="px-5 py-2.5 rounded-xl font-semibold text-brand-brown bg-brand-creamDark hover:bg-brand-creamDark/80 transition">
+          Cancelar
+        </button>
+        <button id="confirm-ok-btn" class="px-5 py-2.5 rounded-xl font-semibold text-white bg-brand-orange hover:bg-brand-orangeHover transition shadow-md">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BARRA DE ESTADO DE CONEXIÓN / CONFIGURACIÓN SUPABASE                  -->
+  <!-- ===================================================================== -->
+  <div id="db-status-bar" class="hidden bg-brand-brown text-brand-cream text-xs py-2 px-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span id="db-indicator" class="w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse"></span>
+        <span id="db-status-text">Modo Local / Demo activo (Conecta tu proyecto Supabase para persistencia en la nube)</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="openSupabaseConfigModal()" class="underline hover:text-brand-gold transition font-medium flex items-center gap-1">
+          <i data-lucide="database" class="w-3.5 h-3.5"></i> Configurar Supabase
+        </button>
+        <span class="text-brand-cream/40">|</span>
+        <button id="nav-switch-btn" onclick="toggleAppModule()" class="bg-brand-orange hover:bg-brand-orangeHover text-white px-3 py-1 rounded-lg font-semibold transition flex items-center gap-1.5">
+          <i data-lucide="lock" class="w-3.5 h-3.5"></i> <span id="nav-switch-label">Panel Admin (/admin)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURACIÓN DE CREDENCIALES SUPABASE (Anon Key pública) -->
+  <div id="supabase-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-brand-brown/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-brand-creamDark">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2.5 bg-brand-orange/10 text-brand-orange rounded-2xl">
+            <i data-lucide="server" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-brand-brown">Conexión a Supabase</h3>
+            <p class="text-xs text-brand-brownLight">Usa únicamente tu URL del proyecto y clave pública (anon key)</p>
+          </div>
+        </div>
+        <button onclick="closeSupabaseConfigModal()" class="p-2 rounded-xl hover:bg-brand-cream text-brand-brownLight">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="supabase-config-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-brand-brownLight mb-1">Supabase Project URL</label>
+          <input type="url" id="sb-url-input" placeholder="https://tu-proyecto.supabase.co" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-brand-brownLight mb-1">Supabase Anon Public Key</label>
+          <input type="text" id="sb-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+        <div class="bg-brand-goldLight/50 p-3.5 rounded-2xl text-xs text-brand-brown leading-relaxed">
+          <strong>Nota de seguridad:</strong> Nunca ingreses la clave <code>service_role</code> en el navegador. Las operaciones de escritura están protegidas por políticas Row Level Security (RLS) en PostgreSQL.
+        </div>
+        <div class="flex flex-wrap justify-between gap-2 pt-2">
+          <button type="button" onclick="resetSupabaseConfig()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 transition">
+            Usar Modo Local
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeSupabaseConfigModal()" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-creamDark text-brand-brown">
+              Cancelar
+            </button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-brand-orange hover:bg-brand-orangeHover text-white shadow-md transition">
+              Conectar y Sincronizar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MÓDULO 1: TIENDA VIRTUAL PARA CLIENTES                                -->
+  <!-- ===================================================================== -->
+  <div id="storefront-module" class="min-h-screen flex flex-col">
+    <!-- HEADER / NAVBAR -->
+    <div class="bg-brand-orange text-white text-center px-4 py-2.5 text-[11px] sm:text-xs font-extrabold tracking-[.09em] uppercase">
+      Empanadas horneadas · Carne · Pollo · Queso <span class="hidden sm:inline mx-3 opacity-60">|</span><span class="hidden sm:inline">Pide para recoger o delivery</span>
+    </div>
+    <header class="premium-header sticky top-0 z-40 bg-brand-cream/95 backdrop-blur-xl border-b border-brand-creamDark">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[82px] flex items-center justify-between gap-4">
+        <a href="#inicio" class="flex items-center gap-3 group min-w-0" aria-label="HORNEADOS DANI, ir al inicio">
+          <span class="w-12 h-12 sm:w-[54px] sm:h-[54px] rounded-[18px] bg-brand-brown text-brand-gold flex items-center justify-center shrink-0 group-hover:rotate-[-4deg] transition-transform shadow-md" aria-hidden="true">
+            <svg class="w-8 h-8" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 22c0-9 7.5-15 17-15 4.4 0 8 3.7 8 8.8 0 8.5-8.5 14.2-17 14.2C9.5 30 6 26.8 6 22Z"/><path d="m11 17 4 3m1-8 4 3m2-3 3 3m-15 8 4 2m3-3 4 2"/></svg>
+          </span>
+          <span class="min-w-0"><strong id="header-business-name" class="serif block text-xl sm:text-[25px] leading-tight tracking-tight text-brand-brown">HORNEADOS DANI</strong><span class="block text-[10px] sm:text-[11px] tracking-[.17em] font-extrabold text-brand-orange uppercase">Empanadas artesanales</span></span>
+        </a>
+        <nav class="hidden lg:flex items-center gap-8 text-[13px] font-extrabold text-brand-brown" aria-label="Menú principal">
+          <a href="#inicio" class="header-link">Inicio</a><a href="#menu" class="header-link">Nuestros sabores</a><a href="#como-pedir" class="header-link">Cómo pedir</a><a href="#ubicacion" class="header-link">Contacto</a>
+        </nav>
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button type="button" onclick="openWhatsAppInquiry()" class="hidden md:flex text-sm font-extrabold items-center gap-2 text-brand-brown hover:text-brand-orange transition" aria-label="Consultar por WhatsApp"><i data-lucide="message-circle" class="w-5 h-5"></i> Consultar</button>
+          <button type="button" onclick="openCartDrawer()" class="dani-focus relative flex items-center justify-center gap-2 bg-brand-orange hover:bg-brand-orangeHover text-white px-3.5 sm:px-5 py-3 rounded-full font-extrabold text-xs sm:text-sm transition shadow-lg shadow-brand-orange/20" aria-label="Abrir carrito de pedidos">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i><span class="hidden sm:inline">Mi pedido</span><span id="cart-badge-count" class="bg-white text-brand-orange min-w-6 px-1.5 py-0.5 rounded-full text-xs">0</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO / APERTURA COMERCIAL -->
+    <section id="inicio" class="hero-premium relative overflow-hidden text-brand-cream py-14 md:py-20 lg:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid lg:grid-cols-[.98fr_1.02fr] gap-12 lg:gap-12 items-center">
+          <div class="relative">
+            <p class="tiny-rule text-brand-gold mb-5">Hechas para disfrutar</p>
+            <h1 class="serif text-[clamp(3.5rem,6.25vw,6.35rem)] tracking-[-.055em] leading-[.99] font-extrabold max-w-2xl">El sabor que <span class="italic text-brand-gold">necesitas</span> en cada bocado.</h1>
+            <p id="hero-description" class="mt-7 text-base sm:text-lg leading-relaxed text-brand-cream/80 max-w-xl">En <strong class="text-white">HORNEADOS DANI</strong> preparamos empanadas artesanales de carne, pollo y queso, con masa doradita y rellenos llenos de sabor.</p>
+            <div class="flex flex-col sm:flex-row gap-3 mt-9">
+              <a href="#menu" class="dani-focus inline-flex items-center justify-center gap-2 bg-brand-gold text-brand-brown hover:bg-[#ffd083] px-7 py-4 rounded-full font-extrabold text-sm sm:text-base transition shadow-xl shadow-black/10"><i data-lucide="utensils-crossed" class="w-5 h-5"></i> Ver nuestros sabores</a>
+              <button type="button" onclick="openWhatsAppInquiry()" class="dani-focus inline-flex items-center justify-center gap-2 border border-white/35 hover:bg-white/10 px-7 py-4 rounded-full text-white font-extrabold text-sm sm:text-base transition"><i data-lucide="message-circle" class="w-5 h-5"></i> Escribir por WhatsApp</button>
+            </div>
+            <div class="mt-10 pt-6 border-t border-white/20 grid grid-cols-2 gap-3 sm:flex sm:gap-3" aria-label="Información del negocio">
+              <span class="feature-chip rounded-2xl px-3.5 py-3 text-xs font-bold"><i data-lucide="chef-hat" class="w-4 h-4 inline-block text-brand-gold mr-1.5"></i>3 sabores clásicos</span>
+              <span class="feature-chip rounded-2xl px-3.5 py-3 text-xs font-bold"><i data-lucide="bike" class="w-4 h-4 inline-block text-brand-gold mr-1.5"></i>Recojo o delivery</span>
+            </div>
+          </div>
+          <div class="relative px-2 sm:px-7 lg:pl-9 lg:pr-0">
+            <div class="absolute -inset-4 sm:inset-0 border border-white/15 decor-oval rotate-[-9deg] pointer-events-none"></div>
+            <div class="hero-main-image relative rounded-[36px] sm:rounded-[46px] overflow-hidden aspect-[1.02/1] border-[7px] border-[#FFEDD8] bg-brand-brownLight">
+              <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDExMDAgOTAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlRyZXMgZW1wYW5hZGFzIGFydGVzYW5hbGVzIGRvcmFkYXMgc29icmUgdW5hIG1lc2EgY8OhbGlkYSI+CiAgICA8ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIj48c3RvcCBzdG9wLWNvbG9yPSIjQUU3QzU1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNTAzMjI5Ii8+PC9yYWRpYWxHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGFzdHJ5IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRTZBQyIvPjxzdG9wIG9mZnNldD0iLjQyIiBzdG9wLWNvbG9yPSIjRUFCMDVFIi8+PHN0b3Agb2Zmc2V0PSIuOCIgc3RvcC1jb2xvcj0iI0NENzkzNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzNTQyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii01MCUiIHk9Ii01MCUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjIwMCUiPjxmZURyb3BTaGFkb3cgZHg9IjYiIGR5PSIxOSIgc3RkRGV2aWF0aW9uPSIxOCIgZmxvb2QtY29sb3I9IiMyQTE3MTAiIGZsb29kLW9wYWNpdHk9Ii41OCIvPjwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZ3JhaW4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIuMzQiIG51bU9jdGF2ZXM9IjIiIHNlZWQ9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PGZlQ29tcG9uZW50VHJhbnNmZXI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iLjA3NSIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj4KICAgIDwvZGVmcz48cmVjdCB3aWR0aD0iMTEwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQ1MCIgcnk9IjMzMCIgZmlsbD0iI0RCQjU5MSIgb3BhY2l0eT0iLjM2Ii8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQxMyIgcnk9IjMwMCIgZmlsbD0iI0U4QzQ5RCIgb3BhY2l0eT0iLjIwIiBzdHJva2U9IiNGOUUxQkMiIHN0cm9rZS13aWR0aD0iOCIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzI1IDMzNSkgcm90YXRlKC0xNykgc2NhbGUoMS4wNSkiIGZpbHRlcj0idXJsKCNzaGFkb3cpIj4KICAgICAgICA8cGF0aCBkPSJNLTE5NSAyMCBRLTE3NSAtMTQyIDAgLTE2NCBRMTc5IC0xNDIgMTk1IDIwIFE1IDU3IC0xOTUgMjBaIiBmaWxsPSIjOUM1MTIzIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODMgMTIgUS0xNjEgLTEyOSAwIC0xNDkgUTE2NCAtMTI4IDE4MyAxMiBRMCA0MyAtMTgzIDEyWiIgZmlsbD0idXJsKCNwYXN0cnkpIiBzdHJva2U9IiM5QzUxMjMiIHN0cm9rZS13aWR0aD0iNiIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTg0IDEyIFEtMTEyIDIgMCAxNiBRMTE1IDI4IDE4NCAxMiIgc3Ryb2tlPSIjRjlDNDcxIiBzdHJva2Utd2lkdGg9IjE4IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4MSAxNCBRLTExMCAtMSAtNTAgMTQgVDcwIDE4IFQxODMgMTUiIHN0cm9rZT0iIzlDNTEyMyIgc3Ryb2tlLXdpZHRoPSI0IiBvcGFjaXR5PSIuNjUiIGZpbGw9Im5vbmUiLz4KICAgICAgICA8cGF0aCBkPSJNLTExMCAtNjIgUS03NSAtMTAwIC00MCAtMTAzIE0tMTUgLTExMiBRMTIgLTExNSAzOCAtMTAzIE02MiAtOTEgUTEwMSAtODIgMTIxIC00OSIgc3Ryb2tlPSIjRjlDNDcxIiBzdHJva2Utd2lkdGg9IjEyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii44Ii8+CiAgICAgICAgPHBhdGggZD0iTS0xMzAgLTMzIFEtMTAwIC0xNCAtNzIgLTI2IE0tMjkgLTcyIFEwIC01MiAyNCAtNzEgTTY4IC0yNCBROTkgLTE1IDEyMiAtMjgiIHN0cm9rZT0iIzlDNTEyMyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii4zMiIvPgogICAgICAgIDwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2NjAgMjkwKSByb3RhdGUoMTgpIHNjYWxlKDAuOTcpIiBmaWx0ZXI9InVybCgjc2hhZG93KSI+CiAgICAgICAgPHBhdGggZD0iTS0xOTUgMjAgUS0xNzUgLTE0MiAwIC0xNjQgUTE3OSAtMTQyIDE5NSAyMCBRNSA1NyAtMTk1IDIwWiIgZmlsbD0iI0E2NUYyQSIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgzIDEyIFEtMTYxIC0xMjkgMCAtMTQ5IFExNjQgLTEyOCAxODMgMTIgUTAgNDMgLTE4MyAxMloiIGZpbGw9InVybCgjcGFzdHJ5KSIgc3Ryb2tlPSIjQTY1RjJBIiBzdHJva2Utd2lkdGg9IjYiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4NCAxMiBRLTExMiAyIDAgMTYgUTExNSAyOCAxODQgMTIiIHN0cm9rZT0iI0ZGRTBBMCIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODEgMTQgUS0xMTAgLTEgLTUwIDE0IFQ3MCAxOCBUMTgzIDE1IiBzdHJva2U9IiNBNjVGMkEiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjY1IiBmaWxsPSJub25lIi8+CiAgICAgICAgPHBhdGggZD0iTS0xMTAgLTYyIFEtNzUgLTEwMCAtNDAgLTEwMyBNLTE1IC0xMTIgUTEyIC0xMTUgMzggLTEwMyBNNjIgLTkxIFExMDEgLTgyIDEyMSAtNDkiIHN0cm9rZT0iI0ZGRTBBMCIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuOCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTMwIC0zMyBRLTEwMCAtMTQgLTcyIC0yNiBNLTI5IC03MiBRMCAtNTIgMjQgLTcxIE02OCAtMjQgUTk5IC0xNSAxMjIgLTI4IiBzdHJva2U9IiNBNjVGMkEiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMzIiLz4KICAgICAgICA8L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTU1IDYyNSkgcm90YXRlKC00KSBzY2FsZSgxLjA4KSIgZmlsdGVyPSJ1cmwoI3NoYWRvdykiPgogICAgICAgIDxwYXRoIGQ9Ik0tMTk1IDIwIFEtMTc1IC0xNDIgMCAtMTY0IFExNzkgLTE0MiAxOTUgMjAgUTUgNTcgLTE5NSAyMFoiIGZpbGw9IiNDNjdFMzIiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4MyAxMiBRLTE2MSAtMTI5IDAgLTE0OSBRMTY0IC0xMjggMTgzIDEyIFEwIDQzIC0xODMgMTJaIiBmaWxsPSJ1cmwoI3Bhc3RyeSkiIHN0cm9rZT0iI0M2N0UzMiIgc3Ryb2tlLXdpZHRoPSI2Ii8+CiAgICAgICAgPHBhdGggZD0iTS0xODQgMTIgUS0xMTIgMiAwIDE2IFExMTUgMjggMTg0IDEyIiBzdHJva2U9IiNGRkU2QjMiIHN0cm9rZS13aWR0aD0iMTgiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgxIDE0IFEtMTEwIC0xIC01MCAxNCBUNzAgMTggVDE4MyAxNSIgc3Ryb2tlPSIjQzY3RTMyIiBzdHJva2Utd2lkdGg9IjQiIG9wYWNpdHk9Ii42NSIgZmlsbD0ibm9uZSIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTEwIC02MiBRLTc1IC0xMDAgLTQwIC0xMDMgTS0xNSAtMTEyIFExMiAtMTE1IDM4IC0xMDMgTTYyIC05MSBRMTAxIC04MiAxMjEgLTQ5IiBzdHJva2U9IiNGRkU2QjMiIHN0cm9rZS13aWR0aD0iMTIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjgiLz4KICAgICAgICA8cGF0aCBkPSJNLTEzMCAtMzMgUS0xMDAgLTE0IC03MiAtMjYgTS0yOSAtNzIgUTAgLTUyIDI0IC03MSBNNjggLTI0IFE5OSAtMTUgMTIyIC0yOCIgc3Ryb2tlPSIjQzY3RTMyIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjMyIi8+CiAgICAgICAgPC9nPjxyZWN0IHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgZmlsdGVyPSJ1cmwoI2dyYWluKSIgb3BhY2l0eT0iLjIyIi8+PC9zdmc+" onerror="this.onerror=null" alt="Presentación ilustrativa de comida artesanal" class="absolute inset-0 w-full h-full object-cover" fetchpriority="high"/>
+              <div class="absolute inset-0 bg-gradient-to-t from-brand-brown/65 via-transparent to-transparent"></div>
+              <div class="absolute left-6 bottom-6 text-white"><p class="text-[11px] tracking-[.22em] uppercase font-extrabold text-brand-gold">Elige tu favorito</p><p class="serif text-2xl sm:text-3xl font-extrabold">Carne · Pollo · Queso</p></div>
+            </div>
+            <div class="sun-stamp absolute -right-1 sm:-right-4 -top-5 sm:-top-10 rounded-full bg-brand-gold border-[6px] border-brand-cream text-brand-brown p-4 font-extrabold uppercase tracking-[.09em] text-xs"><span class="serif text-[27px] sm:text-4xl leading-none mb-1">100%</span><span>Amor por lo artesanal</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="bg-[#FFF1DD] py-3.5 border-b border-brand-creamDark">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-center lg:justify-between gap-x-6 gap-y-2 text-[11px] sm:text-xs text-brand-brownLight font-semibold">
+        <div class="flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-brand-orange"></i><span id="hero-address">Barrio Amboró, calle Beni</span></div>
+        <div class="flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-brand-orange"></i><span id="hero-whatsapp">78142994</span></div>
+        <div class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-brand-orange"></i><span id="hero-hours">Consultar disponibilidad</span></div>
+      </div>
+    </div>
+
+    <!-- CATÁLOGO DE PRODUCTOS DINÁMICO -->
+    <section id="menu" class="menu-top pt-20 pb-20 sm:pt-24 sm:pb-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between md:items-end gap-7 mb-11">
+          <div class="max-w-2xl"><p class="tiny-rule text-brand-orange mb-4">Nuestro menú</p>
+            <h2 class="serif text-[clamp(2.6rem,4.8vw,4.5rem)] leading-[1.08] tracking-[-.045em] text-brand-brown font-extrabold">Tres sabores. <span class="italic text-brand-orange">Mil antojos.</span></h2>
+            <p class="text-brand-brownLight mt-4 text-base leading-relaxed">Elige tus empanadas favoritas, agrega la cantidad que quieras y arma tu pedido en segundos. Los precios vigentes los define HORNEADOS DANI.</p>
+          </div>
+          <button type="button" onclick="loadStorefrontData()" class="dani-focus self-start inline-flex items-center gap-2 px-5 py-3 rounded-full border border-brand-creamDark bg-white hover:bg-brand-creamDark text-brand-brown font-bold text-xs transition shrink-0"><i data-lucide="refresh-cw" class="w-4 h-4 text-brand-orange"></i> Actualizar menú</button>
+        </div>
+        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" aria-live="polite"></div>
+        <p class="text-sm text-brand-brownLight mt-9 text-center">¿Tienes una consulta antes de comprar? <button type="button" onclick="openWhatsAppInquiry()" class="font-extrabold text-brand-orange underline underline-offset-4">Escríbenos por WhatsApp.</button></p>
+      </div>
+    </section>
+
+    <!-- BENEFICIOS / MARCA -->
+    <section class="quality-pattern py-20 md:py-24 overflow-hidden" aria-labelledby="quality-title">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 items-center gap-12 lg:gap-20">
+        <div class="relative">
+          <div class="relative bg-brand-brown rounded-[44px] p-9 sm:p-12 min-h-[360px] sm:min-h-[420px] flex flex-col justify-between overflow-hidden shadow-xl">
+            <div class="absolute top-[-95px] right-[-90px] w-[370px] h-[370px] border-[60px] border-brand-orange/20 rounded-full"></div>
+            <div class="absolute bottom-[-70px] right-[60px] w-[210px] h-[210px] border-[30px] border-brand-gold/20 rounded-full"></div>
+            <span class="serif text-6xl text-brand-gold relative z-10">“</span>
+            <p class="serif text-[clamp(2.1rem,4vw,3.8rem)] font-extrabold leading-[1.14] tracking-[-.035em] text-white relative z-10">Momentos sencillos, sabores que se recuerdan.</p>
+            <p class="font-extrabold text-brand-gold text-xs uppercase tracking-[.2em] relative z-10 mt-6">Horneados Dani</p>
+          </div>
+        </div>
+        <div><p class="tiny-rule text-brand-orange mb-4">Nuestra esencia</p>
+          <h2 id="quality-title" class="serif text-[clamp(2.6rem,4vw,4.5rem)] leading-[1.09] tracking-[-.04em] font-extrabold text-brand-brown">Una empanada para <span class="italic text-brand-orange">cada antojo.</span></h2>
+          <p class="text-brand-brownLight leading-relaxed mt-5 max-w-xl">Carne, pollo o queso: en HORNEADOS DANI nos enfocamos en los sabores clásicos de las empanadas horneadas. Pide para compartir, para tu merienda o simplemente porque se te antoja algo rico.</p>
+          <div class="mt-8 space-y-4">
+            <div class="flex gap-4 items-start"><span class="p-3 rounded-2xl bg-white text-brand-orange shadow-sm"><i data-lucide="flame" class="w-6 h-6"></i></span><div><strong class="block text-brand-brown font-extrabold">Preparadas al horno</strong><p class="text-sm text-brand-brownLight mt-1">Ese color dorado que abre el apetito.</p></div></div>
+            <div class="flex gap-4 items-start"><span class="p-3 rounded-2xl bg-white text-brand-orange shadow-sm"><i data-lucide="heart" class="w-6 h-6"></i></span><div><strong class="block text-brand-brown font-extrabold">Tres rellenos para elegir</strong><p class="text-sm text-brand-brownLight mt-1">Carne, pollo y queso para todos los gustos.</p></div></div>
+            <div class="flex gap-4 items-start"><span class="p-3 rounded-2xl bg-white text-brand-orange shadow-sm"><i data-lucide="message-circle" class="w-6 h-6"></i></span><div><strong class="block text-brand-brown font-extrabold">Pedido fácil por WhatsApp</strong><p class="text-sm text-brand-brownLight mt-1">Arma tu carrito y envía los detalles al negocio.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CÓMO COMPRAR -->
+    <section id="como-pedir" class="bg-white py-20 md:py-24" aria-labelledby="steps-title">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12"><p class="tiny-rule text-brand-orange mb-4">Así de sencillo</p><h2 id="steps-title" class="serif text-4xl sm:text-5xl tracking-[-.04em] font-extrabold text-brand-brown">Del antojo al <span class="text-brand-orange italic">pedido.</span></h2></div>
+        <div class="grid md:grid-cols-3 gap-5">
+          <div class="rounded-[28px] p-7 sm:p-9 bg-brand-cream border border-brand-creamDark"><span class="steps-number block text-6xl font-bold mb-6">01</span><i data-lucide="book-open" class="w-7 h-7 text-brand-orange mb-3"></i><h3 class="serif text-2xl text-brand-brown font-extrabold mb-2">Explora los sabores</h3><p class="text-sm text-brand-brownLight leading-relaxed">Mira las empanadas disponibles y sus precios actualizados.</p></div>
+          <div class="rounded-[28px] p-7 sm:p-9 bg-brand-cream border border-brand-creamDark"><span class="steps-number block text-6xl font-bold mb-6">02</span><i data-lucide="shopping-bag" class="w-7 h-7 text-brand-orange mb-3"></i><h3 class="serif text-2xl text-brand-brown font-extrabold mb-2">Arma tu pedido</h3><p class="text-sm text-brand-brownLight leading-relaxed">Agrega tus favoritas y elige recojo o entrega a domicilio.</p></div>
+          <div class="rounded-[28px] p-7 sm:p-9 bg-brand-cream border border-brand-creamDark"><span class="steps-number block text-6xl font-bold mb-6">03</span><i data-lucide="send" class="w-7 h-7 text-brand-orange mb-3"></i><h3 class="serif text-2xl text-brand-brown font-extrabold mb-2">Confirma por WhatsApp</h3><p class="text-sm text-brand-brownLight leading-relaxed">Envía el detalle y coordina la preparación y entrega con nosotros.</p></div>
+        </div>
+        <div class="flex justify-center mt-10"><a href="#menu" class="dani-focus inline-flex items-center gap-2 rounded-full bg-brand-brown text-white hover:bg-brand-orange px-9 py-4 font-extrabold transition"><i data-lucide="arrow-up-right" class="w-5 h-5"></i> Quiero hacer mi pedido</a></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN UBICACIÓN Y CONTACTO -->
+    <section id="ubicacion" class="bg-brand-cream py-20 sm:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="action-pattern relative overflow-hidden rounded-[32px] sm:rounded-[44px] bg-brand-orange text-white px-7 py-12 sm:px-14 sm:py-16 lg:px-16 lg:py-20">
+          <div class="absolute -top-24 -right-24 w-96 h-96 border-[52px] border-white/10 rounded-full pointer-events-none"></div>
+          <div class="grid lg:grid-cols-[1.12fr_.88fr] items-center gap-10 relative z-10">
+            <div><p class="tiny-rule text-white/85 mb-4">Estamos cerca de ti</p><h2 class="serif text-[clamp(2.7rem,4.5vw,4.8rem)] font-extrabold leading-[1.08] tracking-[-.045em]">¿Se te antojaron unas empanadas?</h2><p class="mt-5 text-white/90 max-w-lg leading-relaxed">Estamos en Santa Cruz de la Sierra. Arma tu pedido en la web o escríbenos para coordinar recojo o delivery.</p>
+              <div class="flex flex-wrap gap-3 mt-8"><a href="#menu" class="dani-focus bg-white text-brand-brown hover:bg-brand-creamDark rounded-full font-extrabold px-7 py-4 inline-flex items-center gap-2 transition"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Elegir empanadas</a><button type="button" onclick="openWhatsAppInquiry()" class="dani-focus border border-white/60 hover:bg-white/15 rounded-full px-7 py-4 font-extrabold inline-flex items-center gap-2 transition"><i data-lucide="message-circle" class="w-5 h-5"></i> Consultar por WhatsApp</button></div>
+            </div>
+            <div class="rounded-[28px] p-6 sm:p-8 bg-brand-brown/90 shadow-2xl backdrop-blur-sm border border-white/15">
+              <h3 class="serif text-2xl font-extrabold mb-6">Dónde encontrarnos</h3>
+              <div class="flex gap-3 mb-5"><i data-lucide="map-pin" class="w-6 h-6 text-brand-gold shrink-0"></i><div><p class="text-xs font-extrabold uppercase text-brand-gold tracking-wider mb-1">Dirección</p><p id="footer-address" class="font-semibold text-sm leading-relaxed">Barrio Amboró, calle Beni — Santa Cruz de la Sierra, Bolivia</p></div></div>
+              <div class="flex gap-3 mb-5"><i data-lucide="phone" class="w-6 h-6 text-brand-gold shrink-0"></i><div><p class="text-xs font-extrabold uppercase text-brand-gold tracking-wider mb-1">Pedidos y consultas</p><p id="footer-whatsapp" class="font-semibold text-sm">WhatsApp: +591 78142994</p></div></div>
+              <div class="flex gap-3"><i data-lucide="clock" class="w-6 h-6 text-brand-gold shrink-0"></i><div><p class="text-xs font-extrabold uppercase text-brand-gold tracking-wider mb-1">Horarios</p><p id="footer-hours" class="font-semibold text-sm">Horario: Consultar disponibilidad</p></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-brown text-brand-cream/75 py-10 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div><strong class="serif text-2xl text-white">HORNEADOS DANI</strong><p class="mt-1 text-xs">Empanadas horneadas de carne, pollo y queso · Santa Cruz, Bolivia.</p><p class="mt-3 text-[11px] opacity-70">© <span id="current-year"></span> HORNEADOS DANI. Todos los derechos reservados.</p></div>
+        <div class="flex flex-wrap items-center gap-6 text-xs font-extrabold"><a href="#menu" class="hover:text-brand-gold transition">Menú</a><button type="button" onclick="openWhatsAppInquiry()" class="hover:text-brand-gold transition">WhatsApp</button><button type="button" onclick="switchToAdmin()" class="hover:text-brand-gold transition" aria-label="Entrar al panel de administración">Administración</button></div>
+      </div>
+    </footer>
+
+    <!-- BARRA FLOTANTE INFERIOR EN MÓVIL CUANDO HAY PRODUCTOS EN EL CARRITO -->
+    <div id="mobile-floating-cart" class="fixed bottom-4 left-4 right-4 z-30 md:hidden hidden">
+      <button onclick="openCartDrawer()" class="w-full bg-brand-orange text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between font-extrabold">
+        <div class="flex items-center gap-3">
+          <span id="mobile-cart-count" class="bg-white text-brand-orange w-7 h-7 rounded-xl flex items-center justify-center text-sm font-black">0</span>
+          <span>Ver mi pedido</span>
+        </div>
+        <span id="mobile-cart-total" class="text-lg">Bs 0.00</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- DRAWER LATERAL DEL CARRITO Y FORMULARIO DE PEDIDO                     -->
+  <!-- ===================================================================== -->
+  <div id="cart-drawer-overlay" class="fixed inset-0 z-50 hidden bg-brand-brown/60 backdrop-blur-sm transition-opacity" onclick="closeCartDrawer()"></div>
+  <aside id="cart-drawer" class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-lg bg-brand-cream shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Header Drawer -->
+    <div class="p-5 sm:p-6 bg-white border-b border-brand-creamDark flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 rounded-2xl bg-brand-orange/10 text-brand-orange">
+          <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="font-display text-xl font-extrabold text-brand-brown">Tu Pedido</h3>
+          <p class="text-xs text-brand-brownLight">Revisa tus empanadas y completa tus datos</p>
+        </div>
+      </div>
+      <button onclick="closeCartDrawer()" class="p-2.5 rounded-xl bg-brand-cream hover:bg-brand-creamDark text-brand-brown transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Contenido Scrollable -->
+    <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+      <!-- Lista de items en carrito -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-brand-brownLight">Productos seleccionados</h4>
+          <button onclick="clearCart()" id="clear-cart-btn" class="text-xs font-bold text-red-600 hover:underline hidden">Vaciar carrito</button>
+        </div>
+        <div id="cart-items-list" class="space-y-3">
+          <!-- Items renderizados por JS -->
+        </div>
+      </div>
+
+      <!-- Formulario de Checkout -->
+      <form id="checkout-form" class="space-y-4 bg-white p-5 rounded-3xl border border-brand-creamDark shadow-sm">
+        <h4 class="font-display text-lg font-bold text-brand-brown border-b border-brand-creamDark pb-2.5">
+          Datos para el Pedido
+        </h4>
+
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-1">Nombre completo del cliente *</label>
+          <input type="text" id="cust-name" required placeholder="Ej. María Fernanda López" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-1">Número de teléfono / WhatsApp *</label>
+          <input type="tel" id="cust-phone" required placeholder="Ej. 78142994" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-brand-cream/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+        </div>
+
+        <!-- Modalidad de entrega -->
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-2">Modalidad del pedido *</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="order_type" value="Recoger en el negocio" checked onchange="handleOrderTypeChange()" class="peer sr-only" />
+              <div class="p-3.5 rounded-2xl border-2 border-brand-creamDark peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition text-center">
+                <i data-lucide="store" class="w-5 h-5 mx-auto mb-1 text-brand-orange"></i>
+                <span class="block text-xs font-extrabold text-brand-brown">Recoger en el negocio</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="order_type" value="Delivery" onchange="handleOrderTypeChange()" class="peer sr-only" />
+              <div class="p-3.5 rounded-2xl border-2 border-brand-creamDark peer-checked:border-brand-orange peer-checked:bg-brand-orange/5 transition text-center">
+                <i data-lucide="bike" class="w-5 h-5 mx-auto mb-1 text-brand-orange"></i>
+                <span class="block text-xs font-extrabold text-brand-brown">Delivery</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Info Recoger en el negocio -->
+        <div id="pickup-info-box" class="p-3.5 rounded-2xl bg-brand-goldLight/50 border border-brand-gold/40 text-xs text-brand-brown flex items-start gap-2.5">
+          <i data-lucide="map-pin" class="w-4 h-4 text-brand-orange shrink-0 mt-0.5"></i>
+          <div>
+            <p class="font-bold">Punto de recojo:</p>
+            <p id="checkout-pickup-address">Barrio Amboró, calle Beni (Santa Cruz de la Sierra).</p>
+          </div>
+        </div>
+
+        <!-- Campos Delivery (Condicionales) -->
+        <div id="delivery-fields-box" class="hidden space-y-3 p-4 rounded-2xl bg-brand-cream/70 border border-brand-creamDark">
+          <div>
+            <label class="block text-xs font-bold text-brand-brown mb-1">Dirección de entrega *</label>
+            <input type="text" id="cust-address" placeholder="Ej. Av. Santos Dumont, 3er anillo, Calle 4 #120" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-brand-brown mb-1">Referencias de ubicación (opcional)</label>
+            <input type="text" id="cust-reference" placeholder="Ej. Portón café, frente a la plaza" class="w-full px-4 py-3 rounded-xl border border-brand-creamDark bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+          <div id="delivery-fee-notice" class="text-xs font-semibold text-brand-brownLight">
+            <!-- Se muestra únicamente si el administrador configuró tarifa > 0 -->
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-brand-brown mb-1">Observaciones adicionales (opcional)</label>
+          <textarea id="cust-observations" rows="2" placeholder="Ej. Bien doraditas, incluir servilletas, etc." class="w-full px-4 py-2.5 rounded-xl border border-brand-creamDark bg-brand-cream/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm"></textarea>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer Resumen y Botón WhatsApp -->
+    <div class="p-5 sm:p-6 bg-white border-t border-brand-creamDark space-y-4">
+      <div class="space-y-1.5 text-sm">
+        <div class="flex justify-between text-brand-brownLight">
+          <span>Subtotal productos:</span>
+          <span id="summary-subtotal" class="font-bold text-brand-brown">Bs 0.00</span>
+        </div>
+        <div id="summary-delivery-row" class="hidden justify-between text-brand-brownLight">
+          <span>Costo de Delivery:</span>
+          <span id="summary-delivery" class="font-bold text-brand-brown">Bs 0.00</span>
+        </div>
+        <div class="flex justify-between text-lg font-extrabold text-brand-brown pt-2 border-t border-brand-creamDark">
+          <span>TOTAL A PAGAR:</span>
+          <span id="summary-total" class="text-brand-orange">Bs 0.00</span>
+        </div>
+      </div>
+
+      <button type="button" onclick="submitOrderToWhatsApp()" id="confirm-whatsapp-btn" class="w-full py-4 px-6 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-extrabold text-base shadow-xl shadow-green-600/25 transition flex items-center justify-center gap-2.5">
+        <i data-lucide="send" class="w-5 h-5"></i>
+        CONFIRMAR Y ENVIAR POR WHATSAPP
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===================================================================== -->
+  <!-- MÓDULO 2: PANEL PRIVADO DE ADMINISTRACIÓN (/admin)                    -->
+  <!-- ===================================================================== -->
+  <div id="admin-module" class="hidden min-h-screen bg-stone-100 text-stone-900">
+
+    <!-- PANTALLA DE INICIO DE SESIÓN ADMINISTRATIVA -->
+    <div id="admin-login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-brand-brown via-brand-brown to-stone-900">
+      <div class="bg-white rounded-[2rem] max-w-md w-full p-8 shadow-2xl">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 rounded-2xl bg-brand-orange text-white flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <i data-lucide="shield-check" class="w-8 h-8"></i>
+          </div>
+          <h1 class="font-display text-2xl font-extrabold text-brand-brown">HORNEADOS DANI</h1>
+          <p class="text-sm text-brand-brownLight mt-1">Acceso Privado de Administración</p>
+        </div>
+
+        <form id="admin-login-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Correo electrónico del administrador</label>
+            <input type="email" id="admin-email" required placeholder="admin@horneadosdani.com" class="w-full px-4 py-3.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Contraseña</label>
+            <input type="password" id="admin-password" required placeholder="••••••••" class="w-full px-4 py-3.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm" />
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-1">
+            <button type="button" onclick="handlePasswordRecovery()" class="text-brand-orange font-bold hover:underline">
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
+          <button type="submit" id="admin-login-submit" class="w-full py-3.5 rounded-xl bg-brand-orange hover:bg-brand-orangeHover text-white font-extrabold text-sm shadow-lg transition flex items-center justify-center gap-2">
+            <i data-lucide="log-in" class="w-4 h-4"></i> Iniciar Sesión
+          </button>
+        </form>
+
+        <!-- Acceso de prueba si Supabase aún no está conectado -->
+        <div id="demo-login-helper" class="mt-6 pt-5 border-t border-stone-200 text-center">
+          <p class="text-xs text-stone-500 mb-2">¿Aún no conectaste tu proyecto de Supabase?</p>
+          <button type="button" onclick="loginDemoMode()" class="w-full py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition">
+            Entrar en Modo Demostración Local
+          </button>
+        </div>
+
+        <div class="mt-6 text-center">
+          <button onclick="switchToStorefront()" class="text-xs font-bold text-stone-500 hover:text-brand-brown inline-flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Volver a la Tienda Virtual
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERFAZ DEL DASHBOARD ADMINISTRATIVO (PROTEGIDA POR SESIÓN) -->
+    <div id="admin-dashboard-shell" class="hidden min-h-screen flex flex-col lg:flex-row">
+      <!-- Sidebar Admin -->
+      <aside class="w-full lg:w-64 bg-brand-brown text-brand-cream flex flex-col shrink-0">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between lg:block">
+          <div>
+            <span class="font-display text-xl font-extrabold text-white block">HORNEADOS DANI</span>
+            <span class="text-xs text-brand-gold font-semibold">Panel de Control</span>
+          </div>
+          <button onclick="handleAdminLogout()" class="lg:hidden p-2 rounded-xl bg-white/10 text-white" title="Cerrar sesión">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <nav class="flex lg:flex-col overflow-x-auto p-3 lg:p-4 gap-1.5">
+          <button onclick="switchAdminTab('dashboard')" data-tab="dashboard" class="admin-tab-btn active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition bg-brand-orange text-white">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+          </button>
+          <button onclick="switchAdminTab('orders')" data-tab="orders" class="admin-tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition text-brand-cream/80 hover:bg-white/10">
+            <i data-lucide="clipboard-list" class="w-4 h-4"></i> Pedidos
+            <span id="sidebar-pending-badge" class="ml-auto bg-brand-gold text-brand-brown text-xs font-black px-2 py-0.5 rounded-full">0</span>
+          </button>
+          <button onclick="switchAdminTab('products')" data-tab="products" class="admin-tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition text-brand-cream/80 hover:bg-white/10">
+            <i data-lucide="package" class="w-4 h-4"></i> Productos y Precios
+          </button>
+          <button onclick="switchAdminTab('settings')" data-tab="settings" class="admin-tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold whitespace-nowrap transition text-brand-cream/80 hover:bg-white/10">
+            <i data-lucide="settings" class="w-4 h-4"></i> Configuración
+          </button>
+        </nav>
+
+        <div class="hidden lg:block mt-auto p-4 border-t border-white/10 space-y-3">
+          <div class="px-3 py-2 rounded-xl bg-white/5 text-xs">
+            <p class="text-brand-cream/60">Sesión activa:</p>
+            <p id="admin-user-email" class="font-bold text-white truncate">admin@horneadosdani.com</p>
+          </div>
+          <button onclick="switchToStorefront()" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Ver Tienda Pública
+          </button>
+          <button onclick="handleAdminLogout()" class="w-full py-2.5 px-4 rounded-xl bg-red-600/80 hover:bg-red-600 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
+          </button>
+        </div>
+      </aside>
+
+      <!-- Área Principal Admin -->
+      <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
+        <!-- TAB 1: DASHBOARD -->
+        <section id="admin-tab-dashboard" class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Resumen General</h2>
+              <p class="text-sm text-stone-500">Indicadores operativos y financieros de HORNEADOS DANI</p>
+            </div>
+            <button onclick="refreshAdminData()" class="px-4 py-2.5 rounded-xl bg-white border border-stone-200 hover:bg-stone-50 text-xs font-bold text-stone-700 flex items-center gap-2 shadow-sm">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-orange"></i> Actualizar Datos
+            </button>
+          </div>
+
+          <!-- Tarjetas KPI -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-stone-400">Total Pedidos</p>
+              <p id="kpi-total-orders" class="text-3xl font-extrabold text-brand-brown mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-amber-600">Pendientes</p>
+              <p id="kpi-pending-orders" class="text-3xl font-extrabold text-amber-600 mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-blue-600">Confirmados</p>
+              <p id="kpi-confirmed-orders" class="text-3xl font-extrabold text-blue-600 mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-green-600">Entregados</p>
+              <p id="kpi-delivered-orders" class="text-3xl font-extrabold text-green-600 mt-1">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-stone-400">Ventas del Día</p>
+              <p id="kpi-today-sales" class="text-2xl sm:text-3xl font-extrabold text-brand-orange mt-1">Bs 0.00</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm">
+              <p class="text-xs font-bold uppercase text-stone-400">Ventas del Mes</p>
+              <p id="kpi-month-sales" class="text-2xl sm:text-3xl font-extrabold text-brand-brown mt-1">Bs 0.00</p>
+            </div>
+            <div class="col-span-2 bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-bold uppercase text-stone-400">Productos Disponibles en Menú</p>
+                <p id="kpi-available-products" class="text-3xl font-extrabold text-brand-brown mt-1">0 / 0</p>
+              </div>
+              <button onclick="switchAdminTab('products')" class="px-4 py-2.5 rounded-xl bg-brand-cream text-brand-orange font-bold text-xs hover:bg-brand-creamDark transition">
+                Gestionar Precios →
+              </button>
+            </div>
+          </div>
+
+          <!-- Gráfico de Ventas -->
+          <div class="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-sm">
+            <h3 class="font-display text-lg font-bold text-brand-brown mb-4">Evolución de Ventas (Últimos 7 días)</h3>
+            <div id="sales-chart-wrapper" class="h-64 relative">
+              <canvas id="salesChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: ADMINISTRACIÓN DE PEDIDOS -->
+        <section id="admin-tab-orders" class="hidden space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Gestión de Pedidos</h2>
+              <p class="text-sm text-stone-500">Consulta detalles y actualiza el estado de preparación y entrega</p>
+            </div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="bg-white p-4 rounded-3xl border border-stone-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-stone-500 mb-1">Filtrar por Fecha</label>
+              <input type="date" id="filter-order-date" onchange="renderAdminOrders()" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-500 mb-1">Filtrar por Estado</label>
+              <select id="filter-order-status" onchange="renderAdminOrders()" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">1. Pendiente</option>
+                <option value="Confirmado">2. Confirmado</option>
+                <option value="En preparación">3. En preparación</option>
+                <option value="Listo para recoger">4. Listo para recoger</option>
+                <option value="En camino">5. En camino</option>
+                <option value="Entregado">6. Entregado</option>
+                <option value="Cancelado">7. Cancelado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-stone-500 mb-1">Modalidad de Entrega</label>
+              <select id="filter-order-type" onchange="renderAdminOrders()" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm">
+                <option value="">Todas las modalidades</option>
+                <option value="Recoger en el negocio">Recoger en el negocio</option>
+                <option value="Delivery">Delivery</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Listado de Pedidos -->
+          <div id="admin-orders-list" class="space-y-4">
+            <!-- Renderizado dinámico -->
+          </div>
+        </section>
+
+        <!-- TAB 3: ADMINISTRACIÓN DE PRODUCTOS Y PRECIOS -->
+        <section id="admin-tab-products" class="hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Productos y Control de Precios</h2>
+              <p class="text-sm text-stone-500">Define los precios reales en Bolivianos (Bs) y disponibilidad. Los pedidos anteriores conservan su precio histórico.</p>
+            </div>
+            <button onclick="openProductModal()" class="px-5 py-3 rounded-2xl bg-brand-orange hover:bg-brand-orangeHover text-white font-extrabold text-sm shadow-lg flex items-center gap-2 transition">
+              <i data-lucide="plus" class="w-5 h-5"></i> Nuevo Producto
+            </button>
+          </div>
+
+          <div id="admin-products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Tarjetas de edición rápida -->
+          </div>
+        </section>
+
+        <!-- TAB 4: CONFIGURACIÓN DEL NEGOCIO -->
+        <section id="admin-tab-settings" class="hidden space-y-6 max-w-3xl">
+          <div>
+            <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-brand-brown">Configuración del Negocio</h2>
+            <p class="text-sm text-stone-500">Personaliza los datos operativos de HORNEADOS DANI</p>
+          </div>
+
+          <form id="business-settings-form" class="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Nombre Comercial</label>
+                <input type="text" id="set-business-name" required class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Número de WhatsApp (con código país)</label>
+                <input type="text" id="set-whatsapp" required placeholder="59178142994" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Dirección del Local</label>
+              <input type="text" id="set-address" required class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm" />
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Costo de Delivery (Bs)</label>
+                <input type="number" step="0.50" min="0" id="set-delivery-fee" placeholder="0.00" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-bold" />
+                <p class="text-[11px] text-stone-500 mt-1">Si es 0 o vacío, no se mostrará tarifa fija de delivery al cliente.</p>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Horarios de Atención</label>
+                <input type="text" id="set-hours" placeholder="Ej. Lunes a Sábado 15:00 - 21:00" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm" />
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button type="submit" class="px-6 py-3.5 rounded-2xl bg-brand-brown hover:bg-brand-orange text-white font-extrabold text-sm shadow-md transition flex items-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Guardar Configuración
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL CREAR / EDITAR PRODUCTO -->
+  <div id="product-modal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-brand-brown/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="product-modal-title" class="font-display text-xl font-extrabold text-brand-brown">Editar Producto</h3>
+        <button onclick="closeProductModal()" class="p-2 rounded-xl hover:bg-stone-100 text-stone-500">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="product-form" class="space-y-4">
+        <input type="hidden" id="prod-id" />
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Nombre del Producto *</label>
+          <input type="text" id="prod-name" required placeholder="Ej. Empanada de carne" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Descripción *</label>
+          <textarea id="prod-desc" rows="3" required placeholder="Ingredientes y preparación..." class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Precio en Bs *</label>
+            <input type="number" step="0.50" min="0" id="prod-price" required placeholder="0.00" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-extrabold text-brand-orange" />
+            <p class="text-[11px] text-stone-500 mt-1">Usa 0 si aún no defines el precio.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Estado / Stock</label>
+            <select id="prod-available" class="w-full px-4 py-3 rounded-xl border border-stone-300 text-sm font-semibold">
+              <option value="true">Disponible en tienda</option>
+              <option value="false">Agotado / No disponible</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">Subir Fotografía (Supabase Storage)</label>
+          <input type="file" id="prod-image-file" accept="image/*" class="w-full text-xs text-stone-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-cream file:text-brand-orange hover:file:bg-brand-creamDark" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-stone-600 mb-1">O URL de Fotografía</label>
+          <input type="url" id="prod-image-url" placeholder="https://..." class="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-xs" />
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-stone-200">
+          <button type="button" onclick="closeProductModal()" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-stone-100 text-stone-700">
+            Cancelar
+          </button>
+          <button type="submit" id="save-product-btn" class="px-6 py-2.5 rounded-xl font-extrabold text-sm bg-brand-orange hover:bg-brand-orangeHover text-white shadow-md">
+            Guardar Producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- LÓGICA DE APLICACIÓN, SUPABASE Y PERSISTENCIA                         -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * ESTADO GLOBAL DE LA APLICACIÓN HORNEADOS DANI
+     * Nota: Los precios iniciales de carne, pollo y queso son Bs 5.
+     * El administrador puede modificarlos desde el panel o Supabase.
+     */
+    const STORAGE_KEYS = {
+      CART: 'horneados_dani_cart_v1',
+      SB_URL: 'horneados_dani_sb_url',
+      SB_KEY: 'horneados_dani_sb_key',
+      LOCAL_PRODUCTS: 'horneados_dani_local_products',
+      LOCAL_ORDERS: 'horneados_dani_local_orders',
+      LOCAL_SETTINGS: 'horneados_dani_local_settings',
+      DEMO_AUTH: 'horneados_dani_demo_auth',
+      PRICE_MIGRATION: 'horneados_dani_prices_5_v1'
+    };
+
+
+    // Embedded, offline-safe visual fallback for any image URL that fails to load.
+    const DANI_ILLUSTRATIONS = {
+      carne: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDExMDAgOTAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IklsdXN0cmFjacOzbiBkZSBlbXBhbmFkYSBkZSBjYXJuZSI+CiAgICA8ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIj48c3RvcCBzdG9wLWNvbG9yPSIjQUU3QzU1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNTAzMjI5Ii8+PC9yYWRpYWxHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGFzdHJ5IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRTZBQyIvPjxzdG9wIG9mZnNldD0iLjQyIiBzdG9wLWNvbG9yPSIjRUFCMDVFIi8+PHN0b3Agb2Zmc2V0PSIuOCIgc3RvcC1jb2xvcj0iI0NENzkzNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzNTQyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii01MCUiIHk9Ii01MCUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjIwMCUiPjxmZURyb3BTaGFkb3cgZHg9IjYiIGR5PSIxOSIgc3RkRGV2aWF0aW9uPSIxOCIgZmxvb2QtY29sb3I9IiMyQTE3MTAiIGZsb29kLW9wYWNpdHk9Ii41OCIvPjwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZ3JhaW4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIuMzQiIG51bU9jdGF2ZXM9IjIiIHNlZWQ9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PGZlQ29tcG9uZW50VHJhbnNmZXI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iLjA3NSIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj4KICAgIDwvZGVmcz48cmVjdCB3aWR0aD0iMTEwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQ1MCIgcnk9IjMzMCIgZmlsbD0iI0RCQjU5MSIgb3BhY2l0eT0iLjM2Ii8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQxMyIgcnk9IjMwMCIgZmlsbD0iI0U4QzQ5RCIgb3BhY2l0eT0iLjIwIiBzdHJva2U9IiNGOUUxQkMiIHN0cm9rZS13aWR0aD0iOCIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDQ0MCkgcm90YXRlKC00KSBzY2FsZSgxLjYpIiBmaWx0ZXI9InVybCgjc2hhZG93KSI+CiAgICAgICAgPHBhdGggZD0iTS0xOTUgMjAgUS0xNzUgLTE0MiAwIC0xNjQgUTE3OSAtMTQyIDE5NSAyMCBRNSA1NyAtMTk1IDIwWiIgZmlsbD0iIzlDNTEyMyIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgzIDEyIFEtMTYxIC0xMjkgMCAtMTQ5IFExNjQgLTEyOCAxODMgMTIgUTAgNDMgLTE4MyAxMloiIGZpbGw9InVybCgjcGFzdHJ5KSIgc3Ryb2tlPSIjOUM1MTIzIiBzdHJva2Utd2lkdGg9IjYiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4NCAxMiBRLTExMiAyIDAgMTYgUTExNSAyOCAxODQgMTIiIHN0cm9rZT0iI0Y5QzQ3MSIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODEgMTQgUS0xMTAgLTEgLTUwIDE0IFQ3MCAxOCBUMTgzIDE1IiBzdHJva2U9IiM5QzUxMjMiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjY1IiBmaWxsPSJub25lIi8+CiAgICAgICAgPHBhdGggZD0iTS0xMTAgLTYyIFEtNzUgLTEwMCAtNDAgLTEwMyBNLTE1IC0xMTIgUTEyIC0xMTUgMzggLTEwMyBNNjIgLTkxIFExMDEgLTgyIDEyMSAtNDkiIHN0cm9rZT0iI0Y5QzQ3MSIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuOCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTMwIC0zMyBRLTEwMCAtMTQgLTcyIC0yNiBNLTI5IC03MiBRMCAtNTIgMjQgLTcxIE02OCAtMjQgUTk5IC0xNSAxMjIgLTI4IiBzdHJva2U9IiM5QzUxMjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMzIiLz4KICAgICAgICA8L2c+PHJlY3Qgd2lkdGg9IjExMDAiIGhlaWdodD0iOTAwIiBmaWx0ZXI9InVybCgjZ3JhaW4pIiBvcGFjaXR5PSIuMjIiLz48L3N2Zz4=',
+      pollo: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDExMDAgOTAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IklsdXN0cmFjacOzbiBkZSBlbXBhbmFkYSBkZSBwb2xsbyI+CiAgICA8ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIj48c3RvcCBzdG9wLWNvbG9yPSIjQUU3QzU1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNTAzMjI5Ii8+PC9yYWRpYWxHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGFzdHJ5IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRTZBQyIvPjxzdG9wIG9mZnNldD0iLjQyIiBzdG9wLWNvbG9yPSIjRUFCMDVFIi8+PHN0b3Agb2Zmc2V0PSIuOCIgc3RvcC1jb2xvcj0iI0NENzkzNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzNTQyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii01MCUiIHk9Ii01MCUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjIwMCUiPjxmZURyb3BTaGFkb3cgZHg9IjYiIGR5PSIxOSIgc3RkRGV2aWF0aW9uPSIxOCIgZmxvb2QtY29sb3I9IiMyQTE3MTAiIGZsb29kLW9wYWNpdHk9Ii41OCIvPjwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZ3JhaW4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIuMzQiIG51bU9jdGF2ZXM9IjIiIHNlZWQ9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PGZlQ29tcG9uZW50VHJhbnNmZXI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iLjA3NSIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj4KICAgIDwvZGVmcz48cmVjdCB3aWR0aD0iMTEwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQ1MCIgcnk9IjMzMCIgZmlsbD0iI0RCQjU5MSIgb3BhY2l0eT0iLjM2Ii8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQxMyIgcnk9IjMwMCIgZmlsbD0iI0U4QzQ5RCIgb3BhY2l0eT0iLjIwIiBzdHJva2U9IiNGOUUxQkMiIHN0cm9rZS13aWR0aD0iOCIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDQ0MCkgcm90YXRlKC00KSBzY2FsZSgxLjYpIiBmaWx0ZXI9InVybCgjc2hhZG93KSI+CiAgICAgICAgPHBhdGggZD0iTS0xOTUgMjAgUS0xNzUgLTE0MiAwIC0xNjQgUTE3OSAtMTQyIDE5NSAyMCBRNSA1NyAtMTk1IDIwWiIgZmlsbD0iI0E2NUYyQSIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgzIDEyIFEtMTYxIC0xMjkgMCAtMTQ5IFExNjQgLTEyOCAxODMgMTIgUTAgNDMgLTE4MyAxMloiIGZpbGw9InVybCgjcGFzdHJ5KSIgc3Ryb2tlPSIjQTY1RjJBIiBzdHJva2Utd2lkdGg9IjYiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4NCAxMiBRLTExMiAyIDAgMTYgUTExNSAyOCAxODQgMTIiIHN0cm9rZT0iI0ZGRTBBMCIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODEgMTQgUS0xMTAgLTEgLTUwIDE0IFQ3MCAxOCBUMTgzIDE1IiBzdHJva2U9IiNBNjVGMkEiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjY1IiBmaWxsPSJub25lIi8+CiAgICAgICAgPHBhdGggZD0iTS0xMTAgLTYyIFEtNzUgLTEwMCAtNDAgLTEwMyBNLTE1IC0xMTIgUTEyIC0xMTUgMzggLTEwMyBNNjIgLTkxIFExMDEgLTgyIDEyMSAtNDkiIHN0cm9rZT0iI0ZGRTBBMCIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuOCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTMwIC0zMyBRLTEwMCAtMTQgLTcyIC0yNiBNLTI5IC03MiBRMCAtNTIgMjQgLTcxIE02OCAtMjQgUTk5IC0xNSAxMjIgLTI4IiBzdHJva2U9IiNBNjVGMkEiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMzIiLz4KICAgICAgICA8L2c+PHJlY3Qgd2lkdGg9IjExMDAiIGhlaWdodD0iOTAwIiBmaWx0ZXI9InVybCgjZ3JhaW4pIiBvcGFjaXR5PSIuMjIiLz48L3N2Zz4=',
+      queso: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDExMDAgOTAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IklsdXN0cmFjacOzbiBkZSBlbXBhbmFkYSBkZSBxdWVzbyI+CiAgICA8ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIj48c3RvcCBzdG9wLWNvbG9yPSIjQUU3QzU1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNTAzMjI5Ii8+PC9yYWRpYWxHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGFzdHJ5IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRTZBQyIvPjxzdG9wIG9mZnNldD0iLjQyIiBzdG9wLWNvbG9yPSIjRUFCMDVFIi8+PHN0b3Agb2Zmc2V0PSIuOCIgc3RvcC1jb2xvcj0iI0NENzkzNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzNTQyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii01MCUiIHk9Ii01MCUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjIwMCUiPjxmZURyb3BTaGFkb3cgZHg9IjYiIGR5PSIxOSIgc3RkRGV2aWF0aW9uPSIxOCIgZmxvb2QtY29sb3I9IiMyQTE3MTAiIGZsb29kLW9wYWNpdHk9Ii41OCIvPjwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZ3JhaW4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIuMzQiIG51bU9jdGF2ZXM9IjIiIHNlZWQ9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PGZlQ29tcG9uZW50VHJhbnNmZXI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iLjA3NSIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj4KICAgIDwvZGVmcz48cmVjdCB3aWR0aD0iMTEwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQ1MCIgcnk9IjMzMCIgZmlsbD0iI0RCQjU5MSIgb3BhY2l0eT0iLjM2Ii8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQxMyIgcnk9IjMwMCIgZmlsbD0iI0U4QzQ5RCIgb3BhY2l0eT0iLjIwIiBzdHJva2U9IiNGOUUxQkMiIHN0cm9rZS13aWR0aD0iOCIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDQ0MCkgcm90YXRlKC00KSBzY2FsZSgxLjYpIiBmaWx0ZXI9InVybCgjc2hhZG93KSI+CiAgICAgICAgPHBhdGggZD0iTS0xOTUgMjAgUS0xNzUgLTE0MiAwIC0xNjQgUTE3OSAtMTQyIDE5NSAyMCBRNSA1NyAtMTk1IDIwWiIgZmlsbD0iI0M2N0UzMiIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgzIDEyIFEtMTYxIC0xMjkgMCAtMTQ5IFExNjQgLTEyOCAxODMgMTIgUTAgNDMgLTE4MyAxMloiIGZpbGw9InVybCgjcGFzdHJ5KSIgc3Ryb2tlPSIjQzY3RTMyIiBzdHJva2Utd2lkdGg9IjYiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4NCAxMiBRLTExMiAyIDAgMTYgUTExNSAyOCAxODQgMTIiIHN0cm9rZT0iI0ZGRTZCMyIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODEgMTQgUS0xMTAgLTEgLTUwIDE0IFQ3MCAxOCBUMTgzIDE1IiBzdHJva2U9IiNDNjdFMzIiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjY1IiBmaWxsPSJub25lIi8+CiAgICAgICAgPHBhdGggZD0iTS0xMTAgLTYyIFEtNzUgLTEwMCAtNDAgLTEwMyBNLTE1IC0xMTIgUTEyIC0xMTUgMzggLTEwMyBNNjIgLTkxIFExMDEgLTgyIDEyMSAtNDkiIHN0cm9rZT0iI0ZGRTZCMyIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuOCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTMwIC0zMyBRLTEwMCAtMTQgLTcyIC0yNiBNLTI5IC03MiBRMCAtNTIgMjQgLTcxIE02OCAtMjQgUTk5IC0xNSAxMjIgLTI4IiBzdHJva2U9IiNDNjdFMzIiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMzIiLz4KICAgICAgICA8L2c+PHJlY3Qgd2lkdGg9IjExMDAiIGhlaWdodD0iOTAwIiBmaWx0ZXI9InVybCgjZ3JhaW4pIiBvcGFjaXR5PSIuMjIiLz48L3N2Zz4='
+    };
+    function daniProductFallback(name) {
+      const key = /pollo/i.test(name) ? 'pollo' : /queso/i.test(name) ? 'queso' : 'carne';
+      return DANI_ILLUSTRATIONS[key];
+    }
+    function daniImageError(img, name) {
+      img.onerror = null;
+      img.src = daniProductFallback(name);
+    }
+
+    const DEFAULT_PRODUCTS = [
+      {
+        id: '11111111-1111-1111-1111-111111111101',
+        name: 'Empanada de carne',
+        description: 'Masa artesanal horneada, rellena con carne molida sazonada al estilo tradicional, papa, huevo y especias seleccionadas.',
+        price: 5,
+        image_url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDExMDAgOTAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IklsdXN0cmFjacOzbiBkZSBlbXBhbmFkYSBkZSBjYXJuZSI+CiAgICA8ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIj48c3RvcCBzdG9wLWNvbG9yPSIjQUU3QzU1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNTAzMjI5Ii8+PC9yYWRpYWxHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGFzdHJ5IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRTZBQyIvPjxzdG9wIG9mZnNldD0iLjQyIiBzdG9wLWNvbG9yPSIjRUFCMDVFIi8+PHN0b3Agb2Zmc2V0PSIuOCIgc3RvcC1jb2xvcj0iI0NENzkzNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzNTQyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii01MCUiIHk9Ii01MCUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjIwMCUiPjxmZURyb3BTaGFkb3cgZHg9IjYiIGR5PSIxOSIgc3RkRGV2aWF0aW9uPSIxOCIgZmxvb2QtY29sb3I9IiMyQTE3MTAiIGZsb29kLW9wYWNpdHk9Ii41OCIvPjwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZ3JhaW4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIuMzQiIG51bU9jdGF2ZXM9IjIiIHNlZWQ9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PGZlQ29tcG9uZW50VHJhbnNmZXI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iLjA3NSIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj4KICAgIDwvZGVmcz48cmVjdCB3aWR0aD0iMTEwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQ1MCIgcnk9IjMzMCIgZmlsbD0iI0RCQjU5MSIgb3BhY2l0eT0iLjM2Ii8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQxMyIgcnk9IjMwMCIgZmlsbD0iI0U4QzQ5RCIgb3BhY2l0eT0iLjIwIiBzdHJva2U9IiNGOUUxQkMiIHN0cm9rZS13aWR0aD0iOCIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDQ0MCkgcm90YXRlKC00KSBzY2FsZSgxLjYpIiBmaWx0ZXI9InVybCgjc2hhZG93KSI+CiAgICAgICAgPHBhdGggZD0iTS0xOTUgMjAgUS0xNzUgLTE0MiAwIC0xNjQgUTE3OSAtMTQyIDE5NSAyMCBRNSA1NyAtMTk1IDIwWiIgZmlsbD0iIzlDNTEyMyIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgzIDEyIFEtMTYxIC0xMjkgMCAtMTQ5IFExNjQgLTEyOCAxODMgMTIgUTAgNDMgLTE4MyAxMloiIGZpbGw9InVybCgjcGFzdHJ5KSIgc3Ryb2tlPSIjOUM1MTIzIiBzdHJva2Utd2lkdGg9IjYiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4NCAxMiBRLTExMiAyIDAgMTYgUTExNSAyOCAxODQgMTIiIHN0cm9rZT0iI0Y5QzQ3MSIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODEgMTQgUS0xMTAgLTEgLTUwIDE0IFQ3MCAxOCBUMTgzIDE1IiBzdHJva2U9IiM5QzUxMjMiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjY1IiBmaWxsPSJub25lIi8+CiAgICAgICAgPHBhdGggZD0iTS0xMTAgLTYyIFEtNzUgLTEwMCAtNDAgLTEwMyBNLTE1IC0xMTIgUTEyIC0xMTUgMzggLTEwMyBNNjIgLTkxIFExMDEgLTgyIDEyMSAtNDkiIHN0cm9rZT0iI0Y5QzQ3MSIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuOCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTMwIC0zMyBRLTEwMCAtMTQgLTcyIC0yNiBNLTI5IC03MiBRMCAtNTIgMjQgLTcxIE02OCAtMjQgUTk5IC0xNSAxMjIgLTI4IiBzdHJva2U9IiM5QzUxMjMiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMzIiLz4KICAgICAgICA8L2c+PHJlY3Qgd2lkdGg9IjExMDAiIGhlaWdodD0iOTAwIiBmaWx0ZXI9InVybCgjZ3JhaW4pIiBvcGFjaXR5PSIuMjIiLz48L3N2Zz4=',
+        available: true
+      },
+      {
+        id: '11111111-1111-1111-1111-111111111102',
+        name: 'Empanada de pollo',
+        description: 'Pechuga de pollo desmenuzada y jugosa cocida a fuego lento con sofrito criollo en masa dorada al horno.',
+        price: 5,
+        image_url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDExMDAgOTAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IklsdXN0cmFjacOzbiBkZSBlbXBhbmFkYSBkZSBwb2xsbyI+CiAgICA8ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIj48c3RvcCBzdG9wLWNvbG9yPSIjQUU3QzU1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNTAzMjI5Ii8+PC9yYWRpYWxHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGFzdHJ5IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRTZBQyIvPjxzdG9wIG9mZnNldD0iLjQyIiBzdG9wLWNvbG9yPSIjRUFCMDVFIi8+PHN0b3Agb2Zmc2V0PSIuOCIgc3RvcC1jb2xvcj0iI0NENzkzNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzNTQyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii01MCUiIHk9Ii01MCUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjIwMCUiPjxmZURyb3BTaGFkb3cgZHg9IjYiIGR5PSIxOSIgc3RkRGV2aWF0aW9uPSIxOCIgZmxvb2QtY29sb3I9IiMyQTE3MTAiIGZsb29kLW9wYWNpdHk9Ii41OCIvPjwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZ3JhaW4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIuMzQiIG51bU9jdGF2ZXM9IjIiIHNlZWQ9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PGZlQ29tcG9uZW50VHJhbnNmZXI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iLjA3NSIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj4KICAgIDwvZGVmcz48cmVjdCB3aWR0aD0iMTEwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQ1MCIgcnk9IjMzMCIgZmlsbD0iI0RCQjU5MSIgb3BhY2l0eT0iLjM2Ii8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQxMyIgcnk9IjMwMCIgZmlsbD0iI0U4QzQ5RCIgb3BhY2l0eT0iLjIwIiBzdHJva2U9IiNGOUUxQkMiIHN0cm9rZS13aWR0aD0iOCIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDQ0MCkgcm90YXRlKC00KSBzY2FsZSgxLjYpIiBmaWx0ZXI9InVybCgjc2hhZG93KSI+CiAgICAgICAgPHBhdGggZD0iTS0xOTUgMjAgUS0xNzUgLTE0MiAwIC0xNjQgUTE3OSAtMTQyIDE5NSAyMCBRNSA1NyAtMTk1IDIwWiIgZmlsbD0iI0E2NUYyQSIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgzIDEyIFEtMTYxIC0xMjkgMCAtMTQ5IFExNjQgLTEyOCAxODMgMTIgUTAgNDMgLTE4MyAxMloiIGZpbGw9InVybCgjcGFzdHJ5KSIgc3Ryb2tlPSIjQTY1RjJBIiBzdHJva2Utd2lkdGg9IjYiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4NCAxMiBRLTExMiAyIDAgMTYgUTExNSAyOCAxODQgMTIiIHN0cm9rZT0iI0ZGRTBBMCIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODEgMTQgUS0xMTAgLTEgLTUwIDE0IFQ3MCAxOCBUMTgzIDE1IiBzdHJva2U9IiNBNjVGMkEiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjY1IiBmaWxsPSJub25lIi8+CiAgICAgICAgPHBhdGggZD0iTS0xMTAgLTYyIFEtNzUgLTEwMCAtNDAgLTEwMyBNLTE1IC0xMTIgUTEyIC0xMTUgMzggLTEwMyBNNjIgLTkxIFExMDEgLTgyIDEyMSAtNDkiIHN0cm9rZT0iI0ZGRTBBMCIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuOCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTMwIC0zMyBRLTEwMCAtMTQgLTcyIC0yNiBNLTI5IC03MiBRMCAtNTIgMjQgLTcxIE02OCAtMjQgUTk5IC0xNSAxMjIgLTI4IiBzdHJva2U9IiNBNjVGMkEiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMzIiLz4KICAgICAgICA8L2c+PHJlY3Qgd2lkdGg9IjExMDAiIGhlaWdodD0iOTAwIiBmaWx0ZXI9InVybCgjZ3JhaW4pIiBvcGFjaXR5PSIuMjIiLz48L3N2Zz4=',
+        available: true
+      },
+      {
+        id: '11111111-1111-1111-1111-111111111103',
+        name: 'Empanada de queso',
+        description: 'Abundante queso criollo fundido dentro de nuestra masa suave y crocante recién salida del horno.',
+        price: 5,
+        image_url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMTAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDExMDAgOTAwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IklsdXN0cmFjacOzbiBkZSBlbXBhbmFkYSBkZSBxdWVzbyI+CiAgICA8ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImJnIj48c3RvcCBzdG9wLWNvbG9yPSIjQUU3QzU1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNTAzMjI5Ii8+PC9yYWRpYWxHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGFzdHJ5IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agc3RvcC1jb2xvcj0iI0ZGRTZBQyIvPjxzdG9wIG9mZnNldD0iLjQyIiBzdG9wLWNvbG9yPSIjRUFCMDVFIi8+PHN0b3Agb2Zmc2V0PSIuOCIgc3RvcC1jb2xvcj0iI0NENzkzNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0EzNTQyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii01MCUiIHk9Ii01MCUiIHdpZHRoPSIyMDAlIiBoZWlnaHQ9IjIwMCUiPjxmZURyb3BTaGFkb3cgZHg9IjYiIGR5PSIxOSIgc3RkRGV2aWF0aW9uPSIxOCIgZmxvb2QtY29sb3I9IiMyQTE3MTAiIGZsb29kLW9wYWNpdHk9Ii41OCIvPjwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZ3JhaW4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIuMzQiIG51bU9jdGF2ZXM9IjIiIHNlZWQ9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PGZlQ29tcG9uZW50VHJhbnNmZXI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iLjA3NSIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj4KICAgIDwvZGVmcz48cmVjdCB3aWR0aD0iMTEwMCIgaGVpZ2h0PSI5MDAiIGZpbGw9InVybCgjYmcpIi8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQ1MCIgcnk9IjMzMCIgZmlsbD0iI0RCQjU5MSIgb3BhY2l0eT0iLjM2Ii8+PGVsbGlwc2UgY3g9IjU1MCIgY3k9IjQ2MCIgcng9IjQxMyIgcnk9IjMwMCIgZmlsbD0iI0U4QzQ5RCIgb3BhY2l0eT0iLjIwIiBzdHJva2U9IiNGOUUxQkMiIHN0cm9rZS13aWR0aD0iOCIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDQ0MCkgcm90YXRlKC00KSBzY2FsZSgxLjYpIiBmaWx0ZXI9InVybCgjc2hhZG93KSI+CiAgICAgICAgPHBhdGggZD0iTS0xOTUgMjAgUS0xNzUgLTE0MiAwIC0xNjQgUTE3OSAtMTQyIDE5NSAyMCBRNSA1NyAtMTk1IDIwWiIgZmlsbD0iI0M2N0UzMiIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTgzIDEyIFEtMTYxIC0xMjkgMCAtMTQ5IFExNjQgLTEyOCAxODMgMTIgUTAgNDMgLTE4MyAxMloiIGZpbGw9InVybCgjcGFzdHJ5KSIgc3Ryb2tlPSIjQzY3RTMyIiBzdHJva2Utd2lkdGg9IjYiLz4KICAgICAgICA8cGF0aCBkPSJNLTE4NCAxMiBRLTExMiAyIDAgMTYgUTExNSAyOCAxODQgMTIiIHN0cm9rZT0iI0ZGRTZCMyIgc3Ryb2tlLXdpZHRoPSIxOCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgICAgICAgPHBhdGggZD0iTS0xODEgMTQgUS0xMTAgLTEgLTUwIDE0IFQ3MCAxOCBUMTgzIDE1IiBzdHJva2U9IiNDNjdFMzIiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjY1IiBmaWxsPSJub25lIi8+CiAgICAgICAgPHBhdGggZD0iTS0xMTAgLTYyIFEtNzUgLTEwMCAtNDAgLTEwMyBNLTE1IC0xMTIgUTEyIC0xMTUgMzggLTEwMyBNNjIgLTkxIFExMDEgLTgyIDEyMSAtNDkiIHN0cm9rZT0iI0ZGRTZCMyIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuOCIvPgogICAgICAgIDxwYXRoIGQ9Ik0tMTMwIC0zMyBRLTEwMCAtMTQgLTcyIC0yNiBNLTI5IC03MiBRMCAtNTIgMjQgLTcxIE02OCAtMjQgUTk5IC0xNSAxMjIgLTI4IiBzdHJva2U9IiNDNjdFMzIiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuMzIiLz4KICAgICAgICA8L2c+PHJlY3Qgd2lkdGg9IjExMDAiIGhlaWdodD0iOTAwIiBmaWx0ZXI9InVybCgjZ3JhaW4pIiBvcGFjaXR5PSIuMjIiLz48L3N2Zz4=',
+        available: true
+      }
+    ];
+
+    const DEFAULT_SETTINGS = {
+      id: 1,
+      business_name: 'HORNEADOS DANI',
+      whatsapp_number: '59178142994',
+      address: 'Barrio Amboró, calle Beni',
+      delivery_fee: 0,
+      business_hours: ''
+    };
+
+    let supabaseClient = null;
+    let isSupabaseConnected = false;
+    let currentAdminUser = null;
+    let productsState = [];
+    let ordersState = [];
+    let settingsState = { ...DEFAULT_SETTINGS };
+    let cartState = [];
+    let salesChartInstance = null;
+
+    // Contacto informativo independiente del carrito (respeta cambios del administrador)
+    function openWhatsAppInquiry() {
+      const waNumber = (settingsState.whatsapp_number || '59178142994').replace(/\D/g, '');
+      const business = settingsState.business_name || 'HORNEADOS DANI';
+      const message = `Hola, ${business}. Quisiera consultar la disponibilidad y hacer un pedido de empanadas de carne, pollo o queso.`;
+      window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+    }
+
+    // =====================================================================
+    // INICIALIZACIÓN
+    // =====================================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('current-year').textContent = new Date().getFullYear();
+      lucide.createIcons();
+
+      // Cargar carrito desde localStorage
+      loadCartFromStorage();
+
+      // Inicializar Supabase si hay credenciales guardadas
+      initSupabaseFromStorage();
+
+      // Cargar datos iniciales
+      await loadStorefrontData();
+
+      // Verificar si la URL contiene /admin o hash #admin
+      if (window.location.pathname.endsWith('/admin') || window.location.hash === '#admin') {
+        switchToAdmin();
+      }
+
+      // Listeners de formularios
+      document.getElementById('supabase-config-form').addEventListener('submit', handleSaveSupabaseConfig);
+      document.getElementById('admin-login-form').addEventListener('submit', handleAdminLogin);
+      document.getElementById('product-form').addEventListener('submit', handleSaveProduct);
+      document.getElementById('business-settings-form').addEventListener('submit', handleSaveBusinessSettings);
+    });
+
+    // =====================================================================
+    // UTILIDADES UI (TOASTS Y CONFIRMACIÓN)
+    // =====================================================================
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const colors = {
+        success: 'bg-green-700 text-white',
+        error: 'bg-red-700 text-white',
+        warning: 'bg-amber-600 text-white',
+        info: 'bg-brand-brown text-white'
+      };
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto px-4 py-3.5 rounded-2xl shadow-xl text-sm font-semibold flex items-center justify-between gap-3 transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3800);
+    }
+
+    function showConfirm(title, message) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const cleanup = (result) => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          resolve(result);
+        };
+
+        document.getElementById('confirm-ok-btn').onclick = () => cleanup(true);
+        document.getElementById('confirm-cancel-btn').onclick = () => cleanup(false);
+      });
+    }
+
+    function formatBs(amount) {
+      const num = parseFloat(amount) || 0;
+      return `Bs ${num.toFixed(2)}`;
+    }
+
+    // =====================================================================
+    // GESTIÓN DE CONEXIÓN SUPABASE
+    // =====================================================================
+    function initSupabaseFromStorage() {
+      const url = localStorage.getItem(STORAGE_KEYS.SB_URL);
+      const key = localStorage.getItem(STORAGE_KEYS.SB_KEY);
+      if (url && key && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+          isSupabaseConnected = true;
+          updateDbStatusUI(true);
+        } catch (err) {
+          console.error('Error inicializando Supabase:', err);
+          isSupabaseConnected = false;
+          updateDbStatusUI(false);
+        }
+      } else {
+        isSupabaseConnected = false;
+        updateDbStatusUI(false);
+      }
+    }
+
+    function updateDbStatusUI(connected) {
+      const indicator = document.getElementById('db-indicator');
+      const text = document.getElementById('db-status-text');
+      const demoHelper = document.getElementById('demo-login-helper');
+
+      if (connected) {
+        indicator.className = 'w-2.5 h-2.5 rounded-full bg-green-400';
+        text.textContent = 'Conectado a Supabase PostgreSQL & Auth en tiempo real';
+        if (demoHelper) demoHelper.classList.add('hidden');
+      } else {
+        indicator.className = 'w-2.5 h-2.5 rounded-full bg-brand-gold animate-pulse';
+        text.textContent = 'Modo Local activo (Configura tu URL y Anon Key de Supabase para nube)';
+        if (demoHelper) demoHelper.classList.remove('hidden');
+      }
+    }
+
+    function openSupabaseConfigModal() {
+      document.getElementById('sb-url-input').value = localStorage.getItem(STORAGE_KEYS.SB_URL) || '';
+      document.getElementById('sb-key-input').value = localStorage.getItem(STORAGE_KEYS.SB_KEY) || '';
+      const modal = document.getElementById('supabase-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSupabaseConfigModal() {
+      const modal = document.getElementById('supabase-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function handleSaveSupabaseConfig(e) {
+      e.preventDefault();
+      const url = document.getElementById('sb-url-input').value.trim();
+      const key = document.getElementById('sb-key-input').value.trim();
+      if (!url || !key) {
+        showToast('Ingresa la URL y la Anon Public Key de Supabase', 'warning');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEYS.SB_URL, url);
+      localStorage.setItem(STORAGE_KEYS.SB_KEY, key);
+      initSupabaseFromStorage();
+      closeSupabaseConfigModal();
+      showToast('Credenciales guardadas. Sincronizando datos...', 'success');
+      await loadStorefrontData();
+    }
+
+    async function resetSupabaseConfig() {
+      localStorage.removeItem(STORAGE_KEYS.SB_URL);
+      localStorage.removeItem(STORAGE_KEYS.SB_KEY);
+      supabaseClient = null;
+      isSupabaseConnected = false;
+      updateDbStatusUI(false);
+      closeSupabaseConfigModal();
+      showToast('Se activó el modo de almacenamiento local', 'info');
+      await loadStorefrontData();
+    }
+
+    // =====================================================================
+    // CAPA DE DATOS (SUPABASE + FALLBACK LOCAL PERSISTENTE)
+    // =====================================================================
+    async function loadStorefrontData() {
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          // 1. Obtener configuración del negocio
+          const { data: settingsData, error: setErr } = await supabaseClient
+            .from('business_settings')
+            .select('*')
+            .limit(1)
+            .maybeSingle();
+
+          if (!setErr && settingsData) {
+            settingsState = settingsData;
+          }
+
+          // 2. Obtener productos
+          const { data: prodData, error: prodErr } = await supabaseClient
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+          if (!prodErr && prodData) {
+            productsState = prodData;
+          } else if (prodErr) {
+            throw prodErr;
+          }
+        } else {
+          // Persistencia local
+          const savedSettings = localStorage.getItem(STORAGE_KEYS.LOCAL_SETTINGS);
+          settingsState = savedSettings ? JSON.parse(savedSettings) : { ...DEFAULT_SETTINGS };
+
+          const savedProducts = localStorage.getItem(STORAGE_KEYS.LOCAL_PRODUCTS);
+          if (savedProducts) {
+            productsState = JSON.parse(savedProducts);
+            // Migración única: activar precio Bs 5 para los tres productos base
+            // que aún tenían precio inicial 0. No sobrescribe precios ya editados.
+            if (!localStorage.getItem(STORAGE_KEYS.PRICE_MIGRATION)) {
+              const defaultIds = new Set(DEFAULT_PRODUCTS.map(p => p.id));
+              let migrated = false;
+              productsState.forEach(product => {
+                if (defaultIds.has(product.id) && Number(product.price) === 0) {
+                  product.price = 5;
+                  migrated = true;
+                }
+              });
+              if (migrated) {
+                localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+              }
+              localStorage.setItem(STORAGE_KEYS.PRICE_MIGRATION, '1');
+            }
+          } else {
+            productsState = DEFAULT_PRODUCTS.map(p => ({ ...p }));
+            localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+            localStorage.setItem(STORAGE_KEYS.PRICE_MIGRATION, '1');
+          }
+        }
+
+        applyBusinessSettingsToUI();
+        renderStorefrontProducts();
+        syncCartPricesWithCatalog();
+        renderCart();
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+        showToast('Error al consultar la base de datos. Verifica tus tablas en Supabase.', 'error');
+      }
+    }
+
+    function applyBusinessSettingsToUI() {
+      const name = settingsState.business_name || 'HORNEADOS DANI';
+      const addr = settingsState.address || 'Barrio Amboró, calle Beni';
+      const wa = settingsState.whatsapp_number || '59178142994';
+      const localPhone = wa.startsWith('591') ? wa.slice(3) : wa;
+      const hours = settingsState.business_hours ? settingsState.business_hours : 'Consultar disponibilidad por WhatsApp';
+
+      document.getElementById('header-business-name').textContent = name;
+      document.getElementById('hero-address').textContent = addr;
+      document.getElementById('hero-whatsapp').textContent = localPhone;
+      document.getElementById('hero-hours').textContent = hours;
+      document.getElementById('footer-address').textContent = `${addr} — Santa Cruz de la Sierra, Bolivia`;
+      document.getElementById('footer-whatsapp').textContent = `WhatsApp: +${wa}`;
+      document.getElementById('footer-hours').textContent = `Horario: ${hours}`;
+      document.getElementById('checkout-pickup-address').textContent = `${addr} (Santa Cruz de la Sierra).`;
+    }
+
+    function renderStorefrontProducts() {
+      const grid = document.getElementById('products-grid');
+      if (!productsState.length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-brand-brownLight">No hay productos registrados en el catálogo.</div>`;
+        return;
+      }
+
+      grid.innerHTML = productsState.map(product => {
+        const priceNum = parseFloat(product.price) || 0;
+        const hasValidPrice = priceNum > 0;
+        const isAvailable = product.available && hasValidPrice;
+
+        let badgeHtml = '';
+        if (!product.available) {
+          badgeHtml = `<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 font-extrabold text-xs">Agotado</span>`;
+        } else if (!hasValidPrice) {
+          badgeHtml = `<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-extrabold text-xs">Precio por definir</span>`;
+        } else {
+          badgeHtml = `<span class="px-3 py-1 rounded-full bg-green-100 text-green-800 font-extrabold text-xs">Disponible</span>`;
+        }
+
+        return `
+          <article class="product-card flex flex-col">
+            <div class="product-photo">
+              <img src="${product.image_url || daniProductFallback(product.name)}" onerror="daniImageError(this, this.alt)" alt="Imagen ilustrativa: ${product.name}" loading="lazy" class="${!isAvailable ? 'grayscale opacity-65' : ''}" />
+              <div class="absolute top-4 left-4 z-10 rounded-full bg-white/95 text-brand-brown px-3.5 py-2 text-[11px] uppercase tracking-wider font-extrabold shadow-md"><i data-lucide="flame" class="w-3.5 h-3.5 text-brand-orange inline-block align-middle mr-1"></i>Al horno</div>
+              <div class="absolute bottom-4 right-4 z-10">${badgeHtml}</div>
+            </div>
+            <div class="px-6 py-6 flex flex-1 flex-col">
+              <p class="text-[10px] uppercase tracking-[.2em] font-extrabold text-brand-orange mb-2">Sabor artesanal</p>
+              <h3 class="serif text-[26px] leading-tight font-extrabold text-brand-brown">${product.name}</h3>
+              <p class="text-sm text-brand-brownLight mt-3 leading-relaxed flex-1 min-h-[66px]">${product.description || ''}</p>
+              <div class="border-t border-brand-creamDark mt-6 pt-5 flex items-center justify-between gap-2">
+                <div><p class="text-[10px] font-extrabold uppercase tracking-wider text-brand-brownLight">Precio por unidad</p><p class="product-price font-extrabold">${hasValidPrice ? formatBs(priceNum) : 'Consultar'}</p></div>
+                <button type="button" onclick="addToCart('${product.id}')" ${!isAvailable ? 'disabled' : ''} class="dani-focus min-h-[48px] rounded-full px-5 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition ${isAvailable ? 'bg-brand-orange hover:bg-brand-orangeHover text-white shadow-lg shadow-brand-orange/20' : 'bg-stone-200 text-stone-500 cursor-not-allowed'}" aria-label="${isAvailable ? 'Agregar ' + product.name + ' a mi pedido' : 'Producto no disponible'}"><i data-lucide="${isAvailable ? 'plus' : 'clock'}" class="w-4 h-4"></i>${isAvailable ? 'Agregar' : 'Pendiente'}</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // =====================================================================
+    // CARRITO DE COMPRAS (PERSISTENTE EN LOCALSTORAGE)
+    // =====================================================================
+    function loadCartFromStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEYS.CART);
+        cartState = saved ? JSON.parse(saved) : [];
+      } catch {
+        cartState = [];
+      }
+    }
+
+    function saveCartToStorage() {
+      localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(cartState));
+    }
+
+    function syncCartPricesWithCatalog() {
+      // Actualiza los precios del carrito activo con los precios vigentes del catálogo
+      cartState = cartState.filter(item => {
+        const prod = productsState.find(p => p.id === item.product_id);
+        if (!prod || !prod.available || parseFloat(prod.price) <= 0) return false;
+        item.name = prod.name;
+        item.price = parseFloat(prod.price);
+        return true;
+      });
+      saveCartToStorage();
+    }
+
+    function addToCart(productId) {
+      const product = productsState.find(p => p.id === productId);
+      if (!product || !product.available || parseFloat(product.price) <= 0) {
+        showToast('Este producto no está disponible actualmente', 'warning');
+        return;
+      }
+
+      const existing = cartState.find(item => item.product_id === productId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cartState.push({
+          product_id: product.id,
+          name: product.name,
+          price: parseFloat(product.price),
+          quantity: 1
+        });
+      }
+
+      saveCartToStorage();
+      renderCart();
+      showToast(`+1 ${product.name} agregada al pedido`, 'success');
+    }
+
+    function updateCartQuantity(productId, delta) {
+      const index = cartState.findIndex(item => item.product_id === productId);
+      if (index === -1) return;
+
+      cartState[index].quantity += delta;
+      if (cartState[index].quantity <= 0) {
+        cartState.splice(index, 1);
+      }
+      saveCartToStorage();
+      renderCart();
+    }
+
+    function removeFromCart(productId) {
+      cartState = cartState.filter(item => item.product_id !== productId);
+      saveCartToStorage();
+      renderCart();
+    }
+
+    async function clearCart() {
+      const ok = await showConfirm('Vaciar carrito', '¿Deseas eliminar todos los productos de tu pedido actual?');
+      if (!ok) return;
+      cartState = [];
+      saveCartToStorage();
+      renderCart();
+    }
+
+    function handleOrderTypeChange() {
+      const orderType = document.querySelector('input[name="order_type"]:checked').value;
+      const pickupBox = document.getElementById('pickup-info-box');
+      const deliveryBox = document.getElementById('delivery-fields-box');
+
+      if (orderType === 'Delivery') {
+        pickupBox.classList.add('hidden');
+        deliveryBox.classList.remove('hidden');
+      } else {
+        pickupBox.classList.remove('hidden');
+        deliveryBox.classList.add('hidden');
+      }
+      renderCart();
+    }
+
+    function calculateTotals() {
+      const subtotal = cartState.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const orderType = document.querySelector('input[name="order_type"]:checked')?.value || 'Recoger en el negocio';
+      const configuredDelivery = parseFloat(settingsState.delivery_fee) || 0;
+      const deliveryFee = (orderType === 'Delivery' && configuredDelivery > 0) ? configuredDelivery : 0;
+      const total = subtotal + deliveryFee;
+
+      return { subtotal, deliveryFee, total, orderType, configuredDelivery };
+    }
+
+    function renderCart() {
+      const totalItems = cartState.reduce((acc, item) => acc + item.quantity, 0);
+      const { subtotal, deliveryFee, total, orderType, configuredDelivery } = calculateTotals();
+
+      // Badges
+      document.getElementById('cart-badge-count').textContent = totalItems;
+      const mobileBar = document.getElementById('mobile-floating-cart');
+      if (totalItems > 0) {
+        mobileBar.classList.remove('hidden');
+        document.getElementById('mobile-cart-count').textContent = totalItems;
+        document.getElementById('mobile-cart-total').textContent = formatBs(total);
+      } else {
+        mobileBar.classList.add('hidden');
+      }
+
+      const listEl = document.getElementById('cart-items-list');
+      const clearBtn = document.getElementById('clear-cart-btn');
+
+      if (cartState.length === 0) {
+        clearBtn.classList.add('hidden');
+        listEl.innerHTML = `
+          <div class="text-center py-8 px-4 bg-white rounded-3xl border border-dashed border-brand-creamDark">
+            <i data-lucide="shopping-bag" class="w-10 h-10 mx-auto text-brand-brownLight/40 mb-2"></i>
+            <p class="text-sm font-bold text-brand-brown">Tu carrito está vacío</p>
+            <p class="text-xs text-brand-brownLight mt-1">Agrega empanadas del menú para realizar tu pedido.</p>
+          </div>
+        `;
+      } else {
+        clearBtn.classList.remove('hidden');
+        listEl.innerHTML = cartState.map(item => `
+          <div class="bg-white p-4 rounded-2xl border border-brand-creamDark flex items-center justify-between gap-3 shadow-sm">
+            <div class="min-w-0 flex-1">
+              <p class="font-bold text-sm text-brand-brown truncate">${item.name}</p>
+              <p class="text-xs text-brand-brownLight">${formatBs(item.price)} c/u</p>
+              <p class="text-xs font-extrabold text-brand-orange mt-0.5">Subtotal: ${formatBs(item.price * item.quantity)}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="updateCartQuantity('${item.product_id}', -1)" class="w-8 h-8 rounded-xl bg-brand-cream hover:bg-brand-creamDark font-extrabold text-brand-brown flex items-center justify-center">-</button>
+              <span class="w-6 text-center font-extrabold text-sm">${item.quantity}</span>
+              <button onclick="updateCartQuantity('${item.product_id}', 1)" class="w-8 h-8 rounded-xl bg-brand-cream hover:bg-brand-creamDark font-extrabold text-brand-brown flex items-center justify-center">+</button>
+              <button onclick="removeFromCart('${item.product_id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-xl ml-1" title="Eliminar">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Actualizar resumen de importes
+      document.getElementById('summary-subtotal').textContent = formatBs(subtotal);
+      const deliveryRow = document.getElementById('summary-delivery-row');
+      const deliveryNotice = document.getElementById('delivery-fee-notice');
+
+      if (orderType === 'Delivery' && configuredDelivery > 0) {
+        deliveryRow.classList.remove('hidden');
+        deliveryRow.classList.add('flex');
+        document.getElementById('summary-delivery').textContent = formatBs(deliveryFee);
+        deliveryNotice.innerHTML = `<span class="text-brand-orange font-bold">Costo de delivery configurado: ${formatBs(configuredDelivery)}</span>`;
+      } else {
+        deliveryRow.classList.add('hidden');
+        deliveryRow.classList.remove('flex');
+        deliveryNotice.innerHTML = `<span>El costo de envío se coordinará directamente por WhatsApp.</span>`;
+      }
+
+      document.getElementById('summary-total').textContent = formatBs(total);
+      lucide.createIcons();
+    }
+
+    function openCartDrawer() {
+      document.getElementById('cart-drawer-overlay').classList.remove('hidden');
+      document.getElementById('cart-drawer').classList.remove('translate-x-full');
+      renderCart();
+    }
+
+    function closeCartDrawer() {
+      document.getElementById('cart-drawer-overlay').classList.add('hidden');
+      document.getElementById('cart-drawer').classList.add('translate-x-full');
+    }
+
+    // =====================================================================
+    // REGISTRO DE PEDIDO E INTEGRACIÓN EXACTA CON WHATSAPP
+    // =====================================================================
+    async function submitOrderToWhatsApp() {
+      if (cartState.length === 0) {
+        showToast('Agrega al menos una empanada a tu pedido', 'warning');
+        return;
+      }
+
+      const customerName = document.getElementById('cust-name').value.trim();
+      const customerPhone = document.getElementById('cust-phone').value.trim();
+      const orderType = document.querySelector('input[name="order_type"]:checked').value;
+      const addressInput = document.getElementById('cust-address').value.trim();
+      const refInput = document.getElementById('cust-reference').value.trim();
+      const observations = document.getElementById('cust-observations').value.trim();
+
+      if (!customerName || !customerPhone) {
+        showToast('Por favor ingresa tu nombre y número de teléfono', 'warning');
+        return;
+      }
+
+      if (orderType === 'Delivery' && !addressInput) {
+        showToast('Por favor ingresa tu dirección de entrega para el Delivery', 'warning');
+        return;
+      }
+
+      const fullAddress = orderType === 'Delivery'
+        ? (refInput ? `${addressInput} (Ref: ${refInput})` : addressInput)
+        : (settingsState.address || 'Barrio Amboró, calle Beni');
+
+      const { subtotal, deliveryFee, total } = calculateTotals();
+      const orderNumber = `HD-${Date.now().toString().slice(-6)}`;
+
+      const btn = document.getElementById('confirm-whatsapp-btn');
+      btn.disabled = true;
+      btn.innerHTML = `<span>Registrando pedido...</span>`;
+
+      try {
+        // 1. Registrar pedido en la base de datos (Supabase o LocalStorage)
+        const orderPayload = {
+          order_number: orderNumber,
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          order_type: orderType,
+          delivery_address: fullAddress,
+          observations: observations || 'Ninguna',
+          subtotal: subtotal,
+          delivery_fee: deliveryFee,
+          total: total,
+          status: 'Pendiente',
+          created_at: new Date().toISOString()
+        };
+
+        if (isSupabaseConnected && supabaseClient) {
+          const { data: insertedOrder, error: orderError } = await supabaseClient
+            .from('orders')
+            .insert([orderPayload])
+            .select()
+            .single();
+
+          if (orderError) throw orderError;
+
+          // Guardar precios históricos en order_items
+          const itemsPayload = cartState.map(item => ({
+            order_id: insertedOrder.id,
+            product_id: item.product_id,
+            product_name: item.name,
+            quantity: item.quantity,
+            unit_price: item.price,
+            subtotal: item.price * item.quantity
+          }));
+
+          const { error: itemsError } = await supabaseClient
+            .from('order_items')
+            .insert(itemsPayload);
+
+          if (itemsError) throw itemsError;
+        } else {
+          // Guardado local con precios históricos congelados
+          const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_ORDERS) || '[]');
+          localOrders.unshift({
+            id: crypto.randomUUID(),
+            ...orderPayload,
+            items: cartState.map(item => ({
+              product_id: item.product_id,
+              product_name: item.name,
+              quantity: item.quantity,
+              unit_price: item.price,
+              subtotal: item.price * item.quantity
+            }))
+          });
+          localStorage.setItem(STORAGE_KEYS.LOCAL_ORDERS, JSON.stringify(localOrders));
+        }
+
+        // 2. Construir mensaje oficial de WhatsApp según formato solicitado
+        const productLines = cartState
+          .map(item => `- ${item.name}: ${item.quantity} x Bs ${item.price.toFixed(2)}`)
+          .join('\n');
+
+        const deliveryLine = deliveryFee > 0 ? `Delivery: Bs ${deliveryFee.toFixed(2)}\n` : '';
+        const addressLine = orderType === 'Delivery'
+          ? `Dirección: ${fullAddress}\n`
+          : `Dirección: Recoger en ${fullAddress}\n`;
+
+        const whatsappMessage =
+`Hola, ${settingsState.business_name || 'HORNEADOS DANI'}. Quiero realizar el siguiente pedido:
+Número de pedido: ${orderNumber}.
+Cliente: ${customerName}.
+Teléfono: ${customerPhone}.
+Modalidad: ${orderType}.
+${addressLine}PRODUCTOS:
+${productLines}
+Subtotal: Bs ${subtotal.toFixed(2)}.
+${deliveryLine}TOTAL: Bs ${total.toFixed(2)}.
+Observaciones: ${observations || 'Ninguna'}.`;
+
+        const waNumber = (settingsState.whatsapp_number || '59178142994').replace(/\D/g, '');
+        const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+        // 3. Limpiar carrito tras confirmar
+        cartState = [];
+        saveCartToStorage();
+        renderCart();
+        closeCartDrawer();
+
+        showToast(`Pedido ${orderNumber} registrado. Abriendo WhatsApp...`, 'success');
+
+        // 4. Abrir WhatsApp
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.error('Error registrando pedido:', err);
+        showToast('Hubo un problema al registrar el pedido. Intenta nuevamente.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="send" class="w-5 h-5"></i> CONFIRMAR Y ENVIAR POR WHATSAPP`;
+        lucide.createIcons();
+      }
+    }
+
+    // =====================================================================
+    // NAVEGACIÓN ENTRE TIENDA VIRTUAL Y PANEL ADMINISTRATIVO (/admin)
+    // =====================================================================
+    function toggleAppModule() {
+      const adminVisible = !document.getElementById('admin-module').classList.contains('hidden');
+      if (adminVisible) {
+        switchToStorefront();
+      } else {
+        switchToAdmin();
+      }
+    }
+
+    function switchToStorefront() {
+      document.getElementById('db-status-bar').classList.add('hidden');
+      document.getElementById('admin-module').classList.add('hidden');
+      document.getElementById('storefront-module').classList.remove('hidden');
+      document.getElementById('nav-switch-label').textContent = 'Panel Admin (/admin)';
+      window.history.replaceState({}, '', '#');
+      loadStorefrontData();
+    }
+
+    async function switchToAdmin() {
+      document.getElementById('db-status-bar').classList.remove('hidden');
+      document.getElementById('storefront-module').classList.add('hidden');
+      document.getElementById('admin-module').classList.remove('hidden');
+      document.getElementById('nav-switch-label').textContent = 'Volver a la Tienda';
+      window.history.replaceState({}, '', '#admin');
+
+      await checkAdminAuthSession();
+    }
+
+    // =====================================================================
+    // AUTENTICACIÓN Y SEGURIDAD DEL PANEL ADMINISTRATIVO
+    // =====================================================================
+    async function checkAdminAuthSession() {
+      if (isSupabaseConnected && supabaseClient) {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentAdminUser = session.user;
+          showAdminDashboard(session.user.email);
+          return;
+        }
+      } else {
+        const demoSession = sessionStorage.getItem(STORAGE_KEYS.DEMO_AUTH);
+        if (demoSession) {
+          currentAdminUser = { email: demoSession };
+          showAdminDashboard(demoSession);
+          return;
+        }
+      }
+
+      // Mostrar pantalla de login si no hay sesión válida
+      document.getElementById('admin-login-screen').classList.remove('hidden');
+      document.getElementById('admin-dashboard-shell').classList.add('hidden');
+    }
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value;
+
+      if (!isSupabaseConnected || !supabaseClient) {
+        showToast('Conecta Supabase primero o usa el botón de Modo Demostración Local.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('admin-login-submit');
+      btn.disabled = true;
+      btn.textContent = 'Verificando credenciales...';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        currentAdminUser = data.user;
+        showToast('Bienvenido al panel de HORNEADOS DANI', 'success');
+        showAdminDashboard(data.user.email);
+      } catch (err) {
+        showToast(err.message || 'Credenciales incorrectas', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> Iniciar Sesión`;
+        lucide.createIcons();
+      }
+    }
+
+    function loginDemoMode() {
+      sessionStorage.setItem(STORAGE_KEYS.DEMO_AUTH, 'admin-local@horneadosdani.com');
+      currentAdminUser = { email: 'admin-local@horneadosdani.com' };
+      showToast('Acceso concedido en Modo Local', 'info');
+      showAdminDashboard('admin-local@horneadosdani.com');
+    }
+
+    async function handlePasswordRecovery() {
+      const email = document.getElementById('admin-email').value.trim();
+      if (!email) {
+        showToast('Escribe tu correo electrónico arriba para enviarte el enlace de recuperación', 'warning');
+        return;
+      }
+      if (!isSupabaseConnected || !supabaseClient) {
+        showToast('La recuperación de contraseña por correo requiere conectar Supabase Auth.', 'info');
+        return;
+      }
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.href
+      });
+      if (error) {
+        showToast(error.message, 'error');
+      } else {
+        showToast('Se envió un correo de recuperación de contraseña', 'success');
+      }
+    }
+
+    async function handleAdminLogout() {
+      if (isSupabaseConnected && supabaseClient) {
+        await supabaseClient.auth.signOut();
+      }
+      sessionStorage.removeItem(STORAGE_KEYS.DEMO_AUTH);
+      currentAdminUser = null;
+      document.getElementById('admin-dashboard-shell').classList.add('hidden');
+      document.getElementById('admin-login-screen').classList.remove('hidden');
+      showToast('Sesión cerrada correctamente', 'info');
+    }
+
+    async function showAdminDashboard(email) {
+      document.getElementById('admin-login-screen').classList.add('hidden');
+      document.getElementById('admin-dashboard-shell').classList.remove('hidden');
+      document.getElementById('admin-user-email').textContent = email;
+      await refreshAdminData();
+    }
+
+    // =====================================================================
+    // OPERACIONES DEL PANEL ADMINISTRATIVO
+    // =====================================================================
+    function switchAdminTab(tabName) {
+      ['dashboard', 'orders', 'products', 'settings'].forEach(t => {
+        document.getElementById(`admin-tab-${t}`).classList.add('hidden');
+      });
+      document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
+
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.classList.add('bg-brand-orange', 'text-white');
+          btn.classList.remove('text-brand-cream/80', 'hover:bg-white/10');
+        } else {
+          btn.classList.remove('bg-brand-orange', 'text-white');
+          btn.classList.add('text-brand-cream/80', 'hover:bg-white/10');
+        }
+      });
+    }
+
+    async function refreshAdminData() {
+      await loadStorefrontData();
+
+      if (isSupabaseConnected && supabaseClient) {
+        const { data: ordersData, error } = await supabaseClient
+          .from('orders')
+          .select('*, order_items(*)')
+          .order('created_at', { ascending: false });
+
+        if (!error && ordersData) {
+          ordersState = ordersData.map(o => ({
+            ...o,
+            items: o.order_items || []
+          }));
+        }
+      } else {
+        ordersState = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_ORDERS) || '[]');
+      }
+
+      renderAdminKPIs();
+      renderSalesChart();
+      renderAdminOrders();
+      renderAdminProducts();
+      populateSettingsForm();
+      lucide.createIcons();
+    }
+
+    function renderAdminKPIs() {
+      const total = ordersState.length;
+      const pending = ordersState.filter(o => o.status === 'Pendiente').length;
+      const confirmed = ordersState.filter(o => o.status === 'Confirmado').length;
+      const delivered = ordersState.filter(o => o.status === 'Entregado').length;
+
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      const monthStr = now.toISOString().slice(0, 7);
+
+      const validOrders = ordersState.filter(o => o.status !== 'Cancelado');
+      const todaySales = validOrders
+        .filter(o => (o.created_at || '').startsWith(todayStr))
+        .reduce((acc, o) => acc + (parseFloat(o.total) || 0), 0);
+
+      const monthSales = validOrders
+        .filter(o => (o.created_at || '').startsWith(monthStr))
+        .reduce((acc, o) => acc + (parseFloat(o.total) || 0), 0);
+
+      const availableCount = productsState.filter(p => p.available && parseFloat(p.price) > 0).length;
+
+      document.getElementById('kpi-total-orders').textContent = total;
+      document.getElementById('kpi-pending-orders').textContent = pending;
+      document.getElementById('kpi-confirmed-orders').textContent = confirmed;
+      document.getElementById('kpi-delivered-orders').textContent = delivered;
+      document.getElementById('kpi-today-sales').textContent = formatBs(todaySales);
+      document.getElementById('kpi-month-sales').textContent = formatBs(monthSales);
+      document.getElementById('kpi-available-products').textContent = `${availableCount} / ${productsState.length}`;
+      document.getElementById('sidebar-pending-badge').textContent = pending;
+    }
+
+    function renderSalesChart() {
+      const ctx = document.getElementById('salesChart');
+      if (!ctx) return;
+
+      const labels = [];
+      const totals = [];
+      const validOrders = ordersState.filter(o => o.status !== 'Cancelado');
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().slice(0, 10);
+        labels.push(d.toLocaleDateString('es-BO', { weekday: 'short', day: 'numeric' }));
+        const sum = validOrders
+          .filter(o => (o.created_at || '').startsWith(iso))
+          .reduce((acc, o) => acc + (parseFloat(o.total) || 0), 0);
+        totals.push(sum);
+      }
+
+      if (salesChartInstance) {
+        salesChartInstance.destroy();
+      }
+
+      salesChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Ventas (Bs)',
+            data: totals,
+            backgroundColor: '#CF542C',
+            borderRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // GESTIÓN DE PEDIDOS EN ADMIN
+    function renderAdminOrders() {
+      const dateFilter = document.getElementById('filter-order-date').value;
+      const statusFilter = document.getElementById('filter-order-status').value;
+      const typeFilter = document.getElementById('filter-order-type').value;
+
+      const filtered = ordersState.filter(o => {
+        if (dateFilter && !(o.created_at || '').startsWith(dateFilter)) return false;
+        if (statusFilter && o.status !== statusFilter) return false;
+        if (typeFilter && o.order_type !== typeFilter) return false;
+        return true;
+      });
+
+      const container = document.getElementById('admin-orders-list');
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white p-10 rounded-3xl text-center text-stone-500 border border-stone-200">
+            No se encontraron pedidos con los filtros seleccionados.
+          </div>
+        `;
+        return;
+      }
+
+      const statuses = [
+        'Pendiente',
+        'Confirmado',
+        'En preparación',
+        'Listo para recoger',
+        'En camino',
+        'Entregado',
+        'Cancelado'
+      ];
+
+      container.innerHTML = filtered.map(order => {
+        const dateFormatted = new Date(order.created_at).toLocaleString('es-BO');
+        const itemsHtml = (order.items || []).map(it =>
+          `<li class="flex justify-between text-xs py-1 border-b border-stone-100 last:border-0">
+            <span><strong>${it.quantity}x</strong> ${it.product_name} (${formatBs(it.unit_price)} c/u)</span>
+            <span class="font-bold">${formatBs(it.subtotal)}</span>
+          </li>`
+        ).join('');
+
+        return `
+          <div class="bg-white p-5 sm:p-6 rounded-3xl border border-stone-200/80 shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-3">
+              <div>
+                <span class="px-3 py-1 rounded-xl bg-brand-brown text-white font-extrabold text-xs">${order.order_number}</span>
+                <span class="text-xs text-stone-500 ml-2">${dateFormatted}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-stone-500">Estado:</label>
+                <select onchange="updateOrderStatus('${order.id}', this.value)" class="px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-extrabold bg-stone-50 focus:ring-2 focus:ring-brand-orange">
+                  ${statuses.map(st => `<option value="${st}" ${order.status === st ? 'selected' : ''}>${st}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 text-sm">
+              <div class="space-y-1">
+                <p><strong class="text-stone-500">Cliente:</strong> ${order.customer_name}</p>
+                <p><strong class="text-stone-500">Teléfono:</strong> ${order.customer_phone}</p>
+                <p><strong class="text-stone-500">Modalidad:</strong> <span class="font-bold text-brand-orange">${order.order_type}</span></p>
+                <p><strong class="text-stone-500">Dirección:</strong> ${order.delivery_address || 'Recoge en local'}</p>
+                <p><strong class="text-stone-500">Observaciones:</strong> ${order.observations || 'Ninguna'}</p>
+              </div>
+              <div class="bg-stone-50 p-4 rounded-2xl">
+                <p class="text-xs font-extrabold uppercase text-stone-400 mb-2">Detalle (Precios Históricos)</p>
+                <ul class="space-y-1 mb-3">${itemsHtml}</ul>
+                <div class="text-xs space-y-1 pt-2 border-t border-stone-200">
+                  <div class="flex justify-between"><span>Subtotal:</span><span>${formatBs(order.subtotal)}</span></div>
+                  <div class="flex justify-between"><span>Delivery:</span><span>${formatBs(order.delivery_fee)}</span></div>
+                  <div class="flex justify-between text-sm font-extrabold text-brand-brown pt-1">
+                    <span>TOTAL:</span><span class="text-brand-orange">${formatBs(order.total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient
+            .from('orders')
+            .update({ status: newStatus })
+            .eq('id', orderId);
+          if (error) throw error;
+        } else {
+          const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOCAL_ORDERS) || '[]');
+          const idx = localOrders.findIndex(o => o.id === orderId);
+          if (idx !== -1) {
+            localOrders[idx].status = newStatus;
+            localStorage.setItem(STORAGE_KEYS.LOCAL_ORDERS, JSON.stringify(localOrders));
+          }
+        }
+        showToast(`Estado actualizado a "${newStatus}"`, 'success');
+        await refreshAdminData();
+      } catch (err) {
+        console.error(err);
+        showToast('Error al actualizar estado del pedido', 'error');
+      }
+    }
+
+    // ADMINISTRACIÓN DE PRODUCTOS Y PRECIOS
+    function renderAdminProducts() {
+      const grid = document.getElementById('admin-products-grid');
+      grid.innerHTML = productsState.map(prod => `
+        <div class="bg-white rounded-3xl border border-stone-200/80 overflow-hidden shadow-sm flex flex-col">
+          <div class="relative h-44 bg-stone-100">
+            <img src="${prod.image_url || daniProductFallback(prod.name)}" onerror="daniImageError(this, this.alt)" class="w-full h-full object-cover" />
+            <span class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-extrabold ${prod.available ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}">
+              ${prod.available ? 'Activo' : 'Agotado / Inactivo'}
+            </span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="font-display text-lg font-extrabold text-brand-brown">${prod.name}</h3>
+              <p class="text-xs text-stone-500 mt-1 line-clamp-2">${prod.description || ''}</p>
+            </div>
+
+            <!-- Control directo de Precio en Bs -->
+            <div class="p-3.5 rounded-2xl bg-brand-cream/70 border border-brand-creamDark">
+              <label class="block text-[11px] font-extrabold uppercase text-brand-brownLight mb-1">Precio Vigente (Bs)</label>
+              <div class="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.50"
+                  min="0"
+                  id="quick-price-${prod.id}"
+                  value="${parseFloat(prod.price) || 0}"
+                  class="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white font-extrabold text-brand-orange text-base"
+                />
+                <button onclick="quickUpdatePrice('${prod.id}')" class="px-3.5 py-2 rounded-xl bg-brand-brown hover:bg-brand-orange text-white text-xs font-bold transition shrink-0">
+                  Aplicar
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-stone-100">
+              <button onclick="toggleProductAvailability('${prod.id}', ${!prod.available})" class="px-3 py-2 rounded-xl text-xs font-bold ${prod.available ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}">
+                ${prod.available ? 'Marcar Agotado' : 'Activar'}
+              </button>
+              <div class="flex gap-1.5">
+                <button onclick="openProductModal('${prod.id}')" class="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700" title="Editar producto">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+                <button onclick="deleteProduct('${prod.id}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600" title="Eliminar producto">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    async function quickUpdatePrice(productId) {
+      const input = document.getElementById(`quick-price-${productId}`);
+      const newPrice = parseFloat(input.value);
+      if (isNaN(newPrice) || newPrice < 0) {
+        showToast('Ingresa un precio válido en Bolivianos', 'warning');
+        return;
+      }
+
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient
+            .from('products')
+            .update({ price: newPrice, updated_at: new Date().toISOString() })
+            .eq('id', productId);
+          if (error) throw error;
+        } else {
+          const idx = productsState.findIndex(p => p.id === productId);
+          if (idx !== -1) {
+            productsState[idx].price = newPrice;
+            localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+          }
+        }
+        showToast(`Precio actualizado a ${formatBs(newPrice)}`, 'success');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al actualizar precio: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleProductAvailability(productId, newState) {
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient
+            .from('products')
+            .update({ available: newState, updated_at: new Date().toISOString() })
+            .eq('id', productId);
+          if (error) throw error;
+        } else {
+          const idx = productsState.findIndex(p => p.id === productId);
+          if (idx !== -1) {
+            productsState[idx].available = newState;
+            localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+          }
+        }
+        showToast(newState ? 'Producto activado en tienda' : 'Producto marcado como agotado', 'info');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al cambiar disponibilidad', 'error');
+      }
+    }
+
+    function openProductModal(productId = null) {
+      const modal = document.getElementById('product-modal');
+      document.getElementById('product-form').reset();
+      document.getElementById('prod-id').value = productId || '';
+
+      if (productId) {
+        const prod = productsState.find(p => p.id === productId);
+        if (prod) {
+          document.getElementById('product-modal-title').textContent = 'Editar Producto';
+          document.getElementById('prod-name').value = prod.name;
+          document.getElementById('prod-desc').value = prod.description || '';
+          document.getElementById('prod-price').value = parseFloat(prod.price) || 0;
+          document.getElementById('prod-available').value = prod.available ? 'true' : 'false';
+          document.getElementById('prod-image-url').value = prod.image_url || '';
+        }
+      } else {
+        document.getElementById('product-modal-title').textContent = 'Nuevo Producto';
+        document.getElementById('prod-price').value = 0;
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProductModal() {
+      const modal = document.getElementById('product-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('prod-id').value;
+      const name = document.getElementById('prod-name').value.trim();
+      const description = document.getElementById('prod-desc').value.trim();
+      const price = parseFloat(document.getElementById('prod-price').value) || 0;
+      const available = document.getElementById('prod-available').value === 'true';
+      let imageUrl = document.getElementById('prod-image-url').value.trim();
+      const fileInput = document.getElementById('prod-image-file');
+
+      const btn = document.getElementById('save-product-btn');
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+
+      try {
+        // Subida a Supabase Storage si se seleccionó un archivo
+        if (fileInput.files && fileInput.files[0]) {
+          const file = fileInput.files[0];
+          if (isSupabaseConnected && supabaseClient) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+            const { error: uploadError } = await supabaseClient.storage
+              .from('product-images')
+              .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: publicUrlData } = supabaseClient.storage
+              .from('product-images')
+              .getPublicUrl(fileName);
+
+            imageUrl = publicUrlData.publicUrl;
+          } else {
+            imageUrl = URL.createObjectURL(file);
+          }
+        }
+
+        const payload = {
+          name,
+          description,
+          price,
+          available,
+          image_url: imageUrl,
+          updated_at: new Date().toISOString()
+        };
+
+        if (isSupabaseConnected && supabaseClient) {
+          if (id) {
+            const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
+            if (error) throw error;
+          } else {
+            const { error } = await supabaseClient.from('products').insert([payload]);
+            if (error) throw error;
+          }
+        } else {
+          if (id) {
+            const idx = productsState.findIndex(p => p.id === id);
+            if (idx !== -1) productsState[idx] = { ...productsState[idx], ...payload };
+          } else {
+            productsState.push({ id: crypto.randomUUID(), ...payload, created_at: new Date().toISOString() });
+          }
+          localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+        }
+
+        closeProductModal();
+        showToast('Producto guardado correctamente', 'success');
+        await refreshAdminData();
+      } catch (err) {
+        console.error(err);
+        showToast('Error al guardar producto: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Guardar Producto';
+      }
+    }
+
+    async function deleteProduct(productId) {
+      const ok = await showConfirm('Eliminar producto', '¿Estás seguro de eliminar este producto del catálogo? Los pedidos históricos no se verán afectados.');
+      if (!ok) return;
+
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          const { error } = await supabaseClient.from('products').delete().eq('id', productId);
+          if (error) throw error;
+        } else {
+          productsState = productsState.filter(p => p.id !== productId);
+          localStorage.setItem(STORAGE_KEYS.LOCAL_PRODUCTS, JSON.stringify(productsState));
+        }
+        showToast('Producto eliminado', 'info');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al eliminar producto: ' + err.message, 'error');
+      }
+    }
+
+    // CONFIGURACIÓN DEL NEGOCIO
+    function populateSettingsForm() {
+      document.getElementById('set-business-name').value = settingsState.business_name || 'HORNEADOS DANI';
+      document.getElementById('set-whatsapp').value = settingsState.whatsapp_number || '59178142994';
+      document.getElementById('set-address').value = settingsState.address || 'Barrio Amboró, calle Beni';
+      document.getElementById('set-delivery-fee').value = parseFloat(settingsState.delivery_fee) || 0;
+      document.getElementById('set-hours').value = settingsState.business_hours || '';
+    }
+
+    async function handleSaveBusinessSettings(e) {
+      e.preventDefault();
+      const updated = {
+        business_name: document.getElementById('set-business-name').value.trim(),
+        whatsapp_number: document.getElementById('set-whatsapp').value.trim().replace(/\D/g, ''),
+        address: document.getElementById('set-address').value.trim(),
+        delivery_fee: parseFloat(document.getElementById('set-delivery-fee').value) || 0,
+        business_hours: document.getElementById('set-hours').value.trim()
+      };
+
+      try {
+        if (isSupabaseConnected && supabaseClient) {
+          if (settingsState.id) {
+            const { error } = await supabaseClient
+              .from('business_settings')
+              .update(updated)
+              .eq('id', settingsState.id);
+            if (error) throw error;
+          } else {
+            const { error } = await supabaseClient
+              .from('business_settings')
+              .insert([updated]);
+            if (error) throw error;
+          }
+        } else {
+          settingsState = { ...settingsState, ...updated };
+          localStorage.setItem(STORAGE_KEYS.LOCAL_SETTINGS, JSON.stringify(settingsState));
+        }
+
+        showToast('Configuración del negocio actualizada', 'success');
+        await refreshAdminData();
+      } catch (err) {
+        showToast('Error al guardar configuración: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
